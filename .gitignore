@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.hypothesis/
+*.egg-info/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Secrets / environment — never commit real keys
+.env
+.env.*
+!.env.example
+
+# Databases (local/dev state)
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated artifacts
+certificates_store/
+*.zip
+*.log
+logs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/
+coverage/
