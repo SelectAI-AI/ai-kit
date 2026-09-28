@@ -1,0 +1,12 @@
+{
+  "title": "RAG Engineering",
+  "intro_file": "README.md",
+  "notebooks": [
+    { "file": "naive_to_advanced_rag_fieldwise.ipynb", "title": "Naive to Advanced RAG (FieldWise)", "question_type": "reflection" },
+    { "file": "end_to_end_rag_pipeline_fieldwise.ipynb", "title": "End-to-End RAG Pipeline (FieldWise)", "question_type": "reflection" },
+    { "file": "prompt_flows_in_rag_fieldwise.ipynb", "title": "Prompt Flows in RAG (FieldWise)", "question_type": "reflection" },
+    { "file": "conversational_rag_fieldwise.ipynb", "title": "Conversational RAG (FieldWise)", "question_type": "reflection" },
+    { "file": "mcp_core_concepts_langchain_fieldwise.ipynb", "title": "MCP Core Concepts in LangChain (FieldWise)", "question_type": "reflection" },
+    { "file": "rag_evaluation_fieldwise.ipynb", "title": "RAG Evaluation (FieldWise)", "question_type": "reflection" }
+  ]
+}

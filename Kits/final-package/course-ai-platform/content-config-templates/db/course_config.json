@@ -1,0 +1,12 @@
+{
+  "title": "Databases for AI",
+  "intro_file": "README.md",
+  "notebooks": [
+    { "file": "database_fundamentals_routemind.ipynb", "title": "Database Fundamentals (RouteMind)", "question_type": "reflection" },
+    { "file": "data_ingestion_vector_stores_routemind.ipynb", "title": "Data Ingestion & Vector Stores (RouteMind)", "question_type": "reflection" },
+    { "file": "llm_to_database_strategy_routemind.ipynb", "title": "LLM-to-Database Strategy (RouteMind)", "question_type": "reflection" },
+    { "file": "guided_lab_ingest_store_document_set_routemind.ipynb", "title": "Guided Lab: Ingest & Store a Document Set", "question_type": "reflection" },
+    { "file": "guided_lab_text_to_sql_routemind.ipynb", "title": "Guided Lab: Text-to-SQL", "question_type": "reflection" },
+    { "file": "dev_test_prod_serverless_routemind.ipynb", "title": "Dev / Test / Prod, Serverless (RouteMind)", "question_type": "reflection" }
+  ]
+}

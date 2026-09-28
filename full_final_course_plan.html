@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Practical AI/ML Engineering — AI Developer Kit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:   #0F172A; --slate:  #1E293B;
+      --blue:   #3B82F6; --blue-d: #2563EB; --green:  #10B981;
+      --amber:  #F59E0B; --red:    #EF4444; --purple: #8B5CF6;
+      --teal:   #0D9488; --rose:   #BE123C;
+      --white:  #FFFFFF; --gray50: #F8FAFC; --gray100:#F1F5F9;
+      --gray200:#E2E8F0; --gray300:#CBD5E1;
+      --text:   #0F172A; --text-m: #334155; --text-s: #64748B;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--gray50); color: var(--text); line-height: 1.6; min-height: 100vh; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 40%, #1E293B 70%, #0F172A 100%);
+      padding: 64px 32px 56px; text-align: center; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(59,130,246,.18) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 30%, rgba(139,92,246,.12) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-block; background: rgba(59,130,246,.2); border: 1px solid rgba(59,130,246,.4);
+      color: #93C5FD; font-size: .75rem; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; padding: 4px 14px; border-radius: 999px; margin-bottom: 20px;
+    }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; color: #fff; line-height: 1.15; margin-bottom: 14px; letter-spacing: -.02em; }
+    .hero h1 span { background: linear-gradient(90deg, #60A5FA, #A78BFA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { color: #94A3B8; font-size: 1.05rem; max-width: 660px; margin: 0 auto 40px; }
+    .hero-stats { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .stat-card {
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px; padding: 18px 24px; min-width: 110px; backdrop-filter: blur(8px);
+      transition: transform .2s, background .2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); background: rgba(255,255,255,.11); }
+    .stat-num { font-size: 1.8rem; font-weight: 800; color: #fff; line-height: 1; }
+    .stat-label { font-size: .7rem; color: #94A3B8; margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+
+    /* ── NAV ── */
+    .sticky-nav { position: sticky; top: 0; z-index: 100; background: var(--slate); border-bottom: 1px solid rgba(255,255,255,.08); box-shadow: 0 2px 16px rgba(0,0,0,.25); }
+    .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; overflow-x: auto; scrollbar-width: none; }
+    .nav-inner::-webkit-scrollbar { display: none; }
+    .nav-tab { padding: 16px 22px; font-size: .875rem; font-weight: 600; color: #94A3B8; cursor: pointer; border: none; background: none; white-space: nowrap; border-bottom: 3px solid transparent; transition: color .2s, border-color .2s; letter-spacing: .02em; }
+    .nav-tab:hover { color: #E2E8F0; }
+    .nav-tab.active { color: #60A5FA; border-bottom-color: #3B82F6; }
+
+    /* ── LAYOUT ── */
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .section-sub { color: var(--text-s); font-size: .95rem; margin-bottom: 32px; }
+
+    /* ── CARDS ── */
+    .card { background: #fff; border-radius: 16px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); border: 1px solid var(--gray200); }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+    .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    @media (max-width: 700px) { .overview-grid { grid-template-columns: 1fr; } }
+    .rule-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .rule-item { background: var(--gray50); border-left: 3px solid var(--blue); border-radius: 0 10px 10px 0; padding: 12px 16px; font-size: .875rem; color: var(--text-m); line-height: 1.55; }
+    .rule-item strong { color: var(--navy); }
+
+    /* ── TIMELINE ── */
+    .timeline-wrap { background: #fff; border-radius: 16px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); border: 1px solid var(--gray200); margin-bottom: 32px; overflow-x: auto; }
+    .timeline-bar { display: flex; min-width: 820px; border-radius: 10px; overflow: hidden; margin-top: 16px; }
+    .tl-phase { flex: 1; padding: 10px 5px; text-align: center; cursor: pointer; transition: filter .2s, transform .15s; }
+    .tl-phase:hover { filter: brightness(1.12); transform: scaleY(1.04); }
+    .tl-phase-label { font-size: .6rem; font-weight: 700; color: rgba(255,255,255,.92); text-transform: uppercase; letter-spacing: .04em; line-height: 1.35; }
+    .tl-phase-weeks { font-size: .56rem; color: rgba(255,255,255,.65); margin-top: 3px; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-flex; align-items: center; font-size: .7rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .05em; }
+    .badge-beginner     { background: #DBEAFE; color: #1D4ED8; }
+    .badge-intermediate { background: #D1FAE5; color: #065F46; }
+    .badge-advanced     { background: #FEE2E2; color: #991B1B; }
+    .badge-capstone     { background: #EDE9FE; color: #5B21B6; }
+    .badge-gpu          { background: #FEF3C7; color: #92400E; }
+    .badge-new          { background: #FEE2E2; color: #BE123C; border: 1px solid #FECDD3; }
+
+    /* ── LAB BADGES ── */
+    .lab-badge { display: inline-block; font-size: .68rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
+    .lab-guided   { background: #DBEAFE; color: #1E40AF; }
+    .lab-solo     { background: #D1FAE5; color: #065F46; }
+    .lab-eval     { background: #EDE9FE; color: #5B21B6; }
+    .lab-challenge{ background: #FEF3C7; color: #92400E; }
+
+    /* ── ACCORDION ── */
+    .accordion { display: flex; flex-direction: column; gap: 16px; }
+    .phase-card { background: #fff; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); border: 1px solid var(--gray200); overflow: hidden; transition: box-shadow .2s; }
+    .phase-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,.1); }
+    .phase-header { display: flex; align-items: center; gap: 16px; padding: 22px 28px; cursor: pointer; user-select: none; transition: background .15s; }
+    .phase-header:hover { background: var(--gray50); }
+    .phase-num { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 800; color: #fff; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+    .phase-meta { flex: 1; min-width: 0; }
+    .phase-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .phase-name { font-size: 1.05rem; font-weight: 700; color: var(--navy); }
+    .phase-weeks { font-size: .78rem; color: var(--text-s); font-weight: 500; }
+    .phase-desc { font-size: .85rem; color: var(--text-s); margin-top: 4px; line-height: 1.5; }
+    .phase-chevron { font-size: 1.1rem; color: var(--gray300); transition: transform .25s; flex-shrink: 0; }
+    .phase-card.open .phase-chevron { transform: rotate(180deg); }
+    .phase-body { display: none; padding: 0 28px 28px; border-top: 1px solid var(--gray100); }
+    .phase-card.open .phase-body { display: block; }
+    .phase-body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+    @media (max-width: 700px) { .phase-body-grid { grid-template-columns: 1fr; } }
+    .body-section-title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-s); margin-bottom: 10px; }
+    .topic-group { margin-bottom: 14px; }
+    .topic-group-name { font-size: .82rem; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+    .topic-list { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+    .topic-list li { font-size: .82rem; color: var(--text-m); padding-left: 14px; position: relative; }
+    .topic-list li::before { content: '›'; position: absolute; left: 0; color: var(--blue); font-weight: 700; }
+    .lab-item { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; background: var(--gray50); border-radius: 10px; margin-bottom: 8px; }
+    .lab-item-title { font-size: .83rem; font-weight: 600; color: var(--navy); }
+    .lab-item-desc { font-size: .8rem; color: var(--text-s); }
+    .tools-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .tool-chip { background: var(--gray100); border: 1px solid var(--gray200); color: var(--text-m); font-size: .72rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── NOTICE BARS ── */
+    .gpu-notice { background:#FFF7ED; border:1px solid #FED7AA; border-radius:10px; padding:12px 16px; margin-top:16px; font-size:.83rem; color:#92400E; }
+    .new-notice  { background:#FFF1F2; border:1px solid #FECDD3; border-radius:10px; padding:12px 16px; margin-top:16px; font-size:.83rem; color:#BE123C; }
+    .info-notice { background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:12px 16px; margin-top:16px; font-size:.83rem; color:#1D4ED8; }
+
+    /* ── PRICING ── */
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 32px; }
+    .kit-card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); border: 1px solid var(--gray200); transition: transform .2s, box-shadow .2s; position: relative; }
+    .kit-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,.1); }
+    .kit-card.featured { border: 2px solid var(--purple); }
+    .kit-featured-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--purple); color: #fff; font-size: .7rem; font-weight: 700; padding: 3px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+    .kit-num  { font-size: .72rem; font-weight: 700; color: var(--text-s); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .kit-name { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .kit-phases { font-size: .8rem; color: var(--text-s); margin-bottom: 14px; }
+    .kit-price { font-size: 1.8rem; font-weight: 800; color: var(--navy); line-height: 1; }
+    .kit-price span { font-size: .9rem; font-weight: 500; color: var(--text-s); }
+    .kit-usd { font-size: .82rem; color: var(--text-s); margin-top: 2px; }
+    .kit-features { list-style: none; margin-top: 16px; display: flex; flex-direction: column; gap: 7px; }
+    .kit-features li { font-size: .82rem; color: var(--text-m); display: flex; align-items: flex-start; gap: 8px; }
+    .kit-features li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+    .kit-divider { font-size: .72rem; font-weight: 700; color: var(--text-s); text-transform: uppercase; letter-spacing: .08em; margin: 28px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--gray200); }
+    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+    @media (max-width: 700px) { .diff-grid { grid-template-columns: 1fr; } }
+    .diff-card { background: #fff; border-radius: 12px; padding: 18px; border: 1px solid var(--gray200); }
+    .diff-gap    { font-size: .78rem; color: var(--red); font-weight: 600; margin-bottom: 4px; }
+    .diff-answer { font-size: .82rem; color: var(--text-m); }
+    .diff-answer strong { color: var(--navy); }
+
+    /* ── CAPSTONE ── */
+    .capstone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    @media (max-width: 700px) { .capstone-grid { grid-template-columns: 1fr; } }
+    .capstone-item { background: var(--gray50); border: 1px solid var(--gray200); border-radius: 12px; padding: 16px; }
+    .capstone-num   { font-size: .7rem; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .capstone-title { font-size: .88rem; font-weight: 600; color: var(--navy); }
+    .capstone-tags  { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .capstone-tag   { background: #EDE9FE; color: #5B21B6; font-size: .67rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── STACK ── */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .stack-card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); border: 1px solid var(--gray200); transition: transform .2s, box-shadow .2s; }
+    .stack-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.1); }
+    .stack-cat-title { font-size: .85rem; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+    .stack-tool-row { display: flex; flex-direction: column; gap: 8px; }
+    .stack-tool { display: flex; flex-direction: column; gap: 2px; }
+    .stack-tool-name { font-size: .82rem; font-weight: 600; color: var(--navy); font-family: 'JetBrains Mono', monospace; }
+    .stack-tool-desc { font-size: .77rem; color: var(--text-s); }
+
+    /* ── OUTCOMES ── */
+    .outcome-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    @media (max-width: 700px) { .outcome-grid { grid-template-columns: 1fr; } }
+    .outcome-card { background: #fff; border-radius: 14px; padding: 22px; border: 1px solid var(--gray200); box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .outcome-num   { font-size: .7rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .outcome-title { font-size: .95rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .outcome-desc  { font-size: .83rem; color: var(--text-m); line-height: 1.55; }
+
+    /* ── FOOTER ── */
+    .page-footer { text-align: center; padding: 32px; color: var(--text-s); font-size: .8rem; border-top: 1px solid var(--gray200); background: #fff; }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-badge">Modular AI Developer Kit — Self-Paced</div>
+  <h1>Practical <span>AI/ML Engineering</span></h1>
+  <p class="hero-sub">Build production-ready AI systems from scratch — local-first, open-source, database-connected, secure by design. Buy individual kits or the complete bundle.</p>
+  <div class="hero-stats">
+    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">Kits</div></div>
+    <div class="stat-card"><div class="stat-num">9</div><div class="stat-label">Phases</div></div>
+    <div class="stat-card"><div class="stat-num">40+</div><div class="stat-label">Coding Labs</div></div>
+    <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Capstone Projects</div></div>
+    <div class="stat-card"><div class="stat-num">Self-Paced</div><div class="stat-label">~20 Wk Guided</div></div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="sticky-nav">
+  <div class="nav-inner">
+    <button class="nav-tab active" onclick="showTab('overview')">Overview</button>
+    <button class="nav-tab" onclick="showTab('curriculum')">Curriculum</button>
+    <button class="nav-tab" onclick="showTab('pricing')">Kits &amp; Pricing</button>
+    <button class="nav-tab" onclick="showTab('outcomes')">Outcomes</button>
+    <button class="nav-tab" onclick="showTab('stack')">Tech Stack</button>
+  </div>
+</nav>
+
+<main class="page-wrap">
+
+<!-- ═══════════ OVERVIEW ═══════════ -->
+<section id="tab-overview" class="tab-section active">
+  <h2 class="section-title">Course Overview</h2>
+  <p class="section-sub">9 phases across 5 specialization kits. Self-paced with a suggested 20-week guided path. Buy what you need or get the complete bundle.</p>
+
+  <div class="timeline-wrap">
+    <div class="card-title">20-Week Timeline — click a phase to jump to it</div>
+    <div class="timeline-bar">
+      <div class="tl-phase" style="background:#185FA5;" onclick="jumpToPhase(0)">
+        <div class="tl-phase-label">01<br>Foundations</div><div class="tl-phase-weeks">Wk 1–2</div>
+      </div>
+      <div class="tl-phase" style="background:#0F6E56;" onclick="jumpToPhase(1)">
+        <div class="tl-phase-label">02<br>Database + LLM</div><div class="tl-phase-weeks">Wk 3–4</div>
+      </div>
+      <div class="tl-phase" style="background:#0F6E56; flex:1.5;" onclick="jumpToPhase(2)">
+        <div class="tl-phase-label">03<br>RAG</div><div class="tl-phase-weeks">Wk 5–7</div>
+      </div>
+      <div class="tl-phase" style="background:#993C1D; flex:1.5;" onclick="jumpToPhase(3)">
+        <div class="tl-phase-label">04<br>LangGraph</div><div class="tl-phase-weeks">Wk 8–10</div>
+      </div>
+      <div class="tl-phase" style="background:#993C1D;" onclick="jumpToPhase(4)">
+        <div class="tl-phase-label">05<br>MCP</div><div class="tl-phase-weeks">Wk 11–12</div>
+      </div>
+      <div class="tl-phase" style="background:#BE123C;" onclick="jumpToPhase(5)">
+        <div class="tl-phase-label">06<br>AI Security</div><div class="tl-phase-weeks">Wk 13–14</div>
+      </div>
+      <div class="tl-phase" style="background:#7C3A0A;" onclick="jumpToPhase(6)">
+        <div class="tl-phase-label">07<br>Fine-Tuning</div><div class="tl-phase-weeks">Wk 15–16</div>
+      </div>
+      <div class="tl-phase" style="background:#3C3489;" onclick="jumpToPhase(7)">
+        <div class="tl-phase-label">08<br>Agent Ops</div><div class="tl-phase-weeks">Wk 17–18</div>
+      </div>
+      <div class="tl-phase" style="background:#534AB7;" onclick="jumpToPhase(8)">
+        <div class="tl-phase-label">09<br>Capstone</div><div class="tl-phase-weeks">Wk 19–20</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overview-grid">
+    <div class="card">
+      <div class="card-title">Key Rules</div>
+      <ul class="rule-list">
+        <li class="rule-item"><strong>Local-first:</strong> All 9 phases run on your local Windows machine. Google Colab is used exactly once — Phase 7 — for GPU access during fine-tuning. Groq handles all cloud LLM inference for free.</li>
+        <li class="rule-item"><strong>Database-connected from Phase 2:</strong> Every agent and RAG pipeline connects to real databases — PostgreSQL, SQLite, and vector stores. Students learn LLM-to-database strategy across dev, test, and prod environments.</li>
+        <li class="rule-item"><strong>Lab types per module:</strong> Guided lab (60% scaffolded) → Solo exercise (write from scratch, pytest validates) → LangSmith eval run (automated score on frozen dataset = the grade) → Challenge (open-ended).</li>
+        <li class="rule-item"><strong>Submission format:</strong> GitHub notebook link + LangSmith trace share link. Instructors replay any student's exact run. Peer reviews happen in GitHub PRs.</li>
+        <li class="rule-item"><strong>Self-paced:</strong> 20 weeks is the suggested part-time pace (~8–10 hrs/week). No deadlines — finish faster or slower.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Lab Type Legend</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span class="lab-badge lab-guided">Guided Lab</span><span style="font-size:.83rem;color:var(--text-m);">Fill-in-the-blanks, 60% scaffolded. Instructor-led walkthrough.</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span class="lab-badge lab-solo">Solo Exercise</span><span style="font-size:.83rem;color:var(--text-m);">Write from scratch. pytest cells show exactly what is missing.</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span class="lab-badge lab-eval">LangSmith Eval</span><span style="font-size:.83rem;color:var(--text-m);">Automated score on a frozen dataset — this is the grade.</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;"><span class="lab-badge lab-challenge">Challenge</span><span style="font-size:.83rem;color:var(--text-m);">Open-ended, no solution provided. Graded on eval score only.</span></div>
+      </div>
+      <div style="margin-top:20px;">
+        <div class="card-title" style="margin-bottom:10px;">Difficulty Levels</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span class="badge badge-beginner">Beginner</span>
+          <span class="badge badge-intermediate">Intermediate</span>
+          <span class="badge badge-advanced">Advanced</span>
+          <span class="badge badge-capstone">Capstone</span>
+          <span class="badge badge-gpu">GPU Required</span>
+          <span class="badge badge-new">New</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">4 Capstone Projects (Phase 9 — Bundle Only)</div>
+    <p style="font-size:.85rem;color:var(--text-s);margin-bottom:4px;">Pick one to build and deploy. Graded on GitHub repo + HuggingFace Spaces demo + LangSmith 50+ traces + eval score of 75% or above.</p>
+    <div class="capstone-grid">
+      <div class="capstone-item">
+        <div class="capstone-num">Project 01</div>
+        <div class="capstone-title">Company Knowledge Base Chatbot</div>
+        <div class="capstone-tags"><span class="capstone-tag">RAG</span><span class="capstone-tag">LangGraph</span><span class="capstone-tag">PostgreSQL</span><span class="capstone-tag">Guardrails</span></div>
+      </div>
+      <div class="capstone-item">
+        <div class="capstone-num">Project 02</div>
+        <div class="capstone-title">Multi-Agent Research Assistant</div>
+        <div class="capstone-tags"><span class="capstone-tag">LangGraph</span><span class="capstone-tag">MCP</span><span class="capstone-tag">Tavily</span><span class="capstone-tag">PII Masking</span></div>
+      </div>
+      <div class="capstone-item">
+        <div class="capstone-num">Project 03</div>
+        <div class="capstone-title">Fine-Tuned Domain Expert + RAG Hybrid</div>
+        <div class="capstone-tags"><span class="capstone-tag">Unsloth</span><span class="capstone-tag">Ollama</span><span class="capstone-tag">RAG</span><span class="capstone-tag">Secure Agent</span></div>
+      </div>
+      <div class="capstone-item">
+        <div class="capstone-num">Project 04</div>
+        <div class="capstone-title">Full MCP-Powered Secure Agent System</div>
+        <div class="capstone-tags"><span class="capstone-tag">MCP SDK</span><span class="capstone-tag">3+ Servers</span><span class="capstone-tag">FastAPI</span><span class="capstone-tag">Guardrails</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CURRICULUM ═══════════ -->
+<section id="tab-curriculum" class="tab-section">
+  <h2 class="section-title">Curriculum</h2>
+  <p class="section-sub">9 phases, 20 weeks suggested. Click any phase to expand topics, labs, and tools.</p>
+  <div class="accordion">
+
+    <!-- PHASE 01 -->
+    <div class="phase-card" id="phase-0">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#185FA5;">01</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">Foundations &amp; Environment Setup</span>
+            <span class="badge badge-beginner">Beginner</span>
+            <span class="phase-weeks">Week 1–2 · Kit 1 (RAG Engineering)</span>
+          </div>
+          <div class="phase-desc">Python local setup, Groq API, LangChain LCEL, prompt engineering techniques, LangSmith tracing — zero to a traced LLM call in under an hour.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">Dev Environment</div>
+              <ul class="topic-list">
+                <li>Python 3.11, VS Code, Git for Windows</li>
+                <li>Fork course monorepo; .venv; .env; python-dotenv</li>
+                <li>Dev / Test / Prod environment separation from Day 1</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">LLM Fundamentals</div>
+              <ul class="topic-list">
+                <li>What LLMs do; Groq API; message roles</li>
+                <li>Streaming; Token counting; Temperature</li>
+                <li>LLM strategy — when to use which model and why</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Prompt Engineering Techniques</div>
+              <ul class="topic-list">
+                <li>Zero-shot, few-shot, chain-of-thought prompting</li>
+                <li>Role prompting; Output formatting; System prompts</li>
+                <li>Prompt flows — structuring multi-step prompt pipelines</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">LangChain LCEL + LangSmith</div>
+              <ul class="topic-list">
+                <li>Pipe operator; Output parsers (Str, JSON, Pydantic)</li>
+                <li>LANGCHAIN_TRACING_V2; Tracing first chain</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> Groq Hello World</div><div class="lab-item-desc">Call Groq, stream output, log to LangSmith. Configure dev vs prod .env.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-solo">Solo Exercise</span> Prompt Router</div><div class="lab-item-desc">Classify query into 3 categories using a prompt flow; pytest checks routing accuracy.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-eval">LangSmith Eval</span> Week 1 Checkpoint</div><div class="lab-item-desc">Score of 0.75 or above required to proceed.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">Groq API</span><span class="tool-chip">LangChain LCEL</span>
+                <span class="tool-chip">LangSmith</span><span class="tool-chip">python-dotenv</span><span class="tool-chip">VS Code</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 02 -->
+    <div class="phase-card" id="phase-1">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#0F6E56;">02</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">Database Connection &amp; LLM Strategy</span>
+            <span class="badge badge-intermediate">Intermediate</span>
+            <span class="phase-weeks">Week 3–4 · Kit 1 (RAG Engineering)</span>
+          </div>
+          <div class="phase-desc">Connect LLMs to real databases. Learn when to use SQL vs vector vs document stores, and how to structure data pipelines across dev, test, and prod environments.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="info-notice"><strong>8-Hour Deep Dive:</strong> This phase dedicates a full 8 hours to database fundamentals for AI — the most requested topic from working developers. Covers PostgreSQL, SQLite, ChromaDB, and FAISS with hands-on LLM integration at each layer.</div>
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">Database Fundamentals for AI (8 hrs)</div>
+              <ul class="topic-list">
+                <li>PostgreSQL setup and connection pooling</li>
+                <li>SQLite for local dev; schema design for AI workloads</li>
+                <li>ORM vs raw SQL — when each makes sense</li>
+                <li>Connection strings across dev / test / prod</li>
+                <li>Async database access with asyncpg</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">LLM-to-Database Strategy</div>
+              <ul class="topic-list">
+                <li>Text-to-SQL with LangChain SQLDatabaseChain</li>
+                <li>When to use SQL vs vector search vs hybrid</li>
+                <li>Structured output parsing into database rows</li>
+                <li>LLM as query planner — routing to the right store</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Data Ingestion &amp; Vector Stores</div>
+              <ul class="topic-list">
+                <li>PDFs, web pages, CSVs — loaders and metadata tagging</li>
+                <li>Chunking strategies; ChromaDB persist; FAISS in-memory</li>
+                <li>HuggingFace embeddings CPU; Hybrid search</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Dev / Test / Prod Environments</div>
+              <ul class="topic-list">
+                <li>Environment-specific .env files and config management</li>
+                <li>SQLite in dev, PostgreSQL in prod — same codebase</li>
+                <li>Seeding test databases; Teardown patterns</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> Text-to-SQL Agent</div><div class="lab-item-desc">Connect Groq to a PostgreSQL database; natural language queries return SQL results.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> Ingest &amp; Store a Document Set</div><div class="lab-item-desc">Load 5 PDFs, chunk 3 ways, store in ChromaDB with metadata.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-solo">Solo Exercise</span> Multi-Store Query Router</div><div class="lab-item-desc">Route queries to SQL or vector store based on intent; pytest validates routing logic.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-challenge">Challenge</span> Chunk Strategy Benchmark</div><div class="lab-item-desc">Compare 3 chunking configs against a retrieval eval dataset; write a decision doc.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">PostgreSQL</span><span class="tool-chip">SQLite</span>
+                <span class="tool-chip">asyncpg</span><span class="tool-chip">LangChain SQLDatabaseChain</span>
+                <span class="tool-chip">ChromaDB</span><span class="tool-chip">FAISS</span>
+                <span class="tool-chip">HuggingFace Embeddings</span><span class="tool-chip">LangSmith</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 03 -->
+    <div class="phase-card" id="phase-2">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#0F6E56;">03</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">RAG Engineering</span>
+            <span class="badge badge-intermediate">Intermediate</span>
+            <span class="phase-weeks">Week 5–7 · Kit 1 (RAG Engineering Specialization)</span>
+          </div>
+          <div class="phase-desc">From naive RAG to production-grade pipelines with evaluation — the most widely deployed AI pattern in enterprise today.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">Naive to Advanced RAG</div>
+              <ul class="topic-list">
+                <li>Basic LCEL RAG; Multi-query retrieval; HyDE</li>
+                <li>Parent-child retrieval; Re-ranking with bge-reranker</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Prompt Flows in RAG</div>
+              <ul class="topic-list">
+                <li>Query rewriting prompt flow; Contextual compression</li>
+                <li>Structured prompt templates for retrieval augmentation</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Conversational RAG</div>
+              <ul class="topic-list">
+                <li>Chat history + retrieval; LangGraph stateful RAG</li>
+                <li>Routing; Semantic caching; Session memory</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">RAG Evaluation</div>
+              <ul class="topic-list">
+                <li>RAGAS metrics — faithfulness, context precision, recall</li>
+                <li>LangSmith dataset creation; Compare chain versions</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> End-to-End RAG Pipeline</div><div class="lab-item-desc">Ingest PDF, LCEL RAG with Groq + ChromaDB, traced in LangSmith.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-solo">Solo Exercise</span> Upgrade to Advanced RAG</div><div class="lab-item-desc">Add multi-query retrieval + cross-encoder re-ranking.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-eval">LangSmith Eval</span> RAG Eval Checkpoint</div><div class="lab-item-desc">Faithfulness of 0.80 or above and relevancy of 0.75 or above required.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-challenge">Challenge</span> Conversational RAG Chatbot</div><div class="lab-item-desc">Add chat history and session memory; deploy Gradio to HF Spaces.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">Groq</span><span class="tool-chip">LangChain LCEL</span>
+                <span class="tool-chip">LangSmith</span><span class="tool-chip">ChromaDB</span>
+                <span class="tool-chip">RAGAS</span><span class="tool-chip">Gradio</span><span class="tool-chip">bge-reranker</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 04 -->
+    <div class="phase-card" id="phase-3">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#993C1D;">04</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">Agentic AI with LangGraph</span>
+            <span class="badge badge-advanced">Advanced</span>
+            <span class="phase-weeks">Week 8–10 · Kit 2 (Agentic AI Engineering)</span>
+          </div>
+          <div class="phase-desc">Build stateful, controllable AI agents and multi-agent systems. Connect agents to databases and external tools with native LangSmith tracing on every node.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">LangGraph Fundamentals</div>
+              <ul class="topic-list">
+                <li>StateGraph TypedDict; Conditional edges; Compile and invoke</li>
+                <li>Visualise graph; LangSmith node spans</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Agent Patterns</div>
+              <ul class="topic-list">
+                <li>ReAct agent; ToolNode; interrupt_before for human approval</li>
+                <li>Error recovery; MemorySaver checkpointing</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Database-Connected Agents</div>
+              <ul class="topic-list">
+                <li>Agent tools that query PostgreSQL and SQLite</li>
+                <li>Structured output from agent into database rows</li>
+                <li>LLM strategy — choosing the right model per agent node</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Multi-Agent Graphs</div>
+              <ul class="topic-list">
+                <li>Supervisor node; Researcher, Writer, QA agents</li>
+                <li>Parallel execution with Send API; Shared vs scoped state</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Long-Term Memory</div>
+              <ul class="topic-list">
+                <li>SqliteSaver; ChromaDB memory store</li>
+                <li>Resume from checkpoint; Memory summarisation</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> First LangGraph Agent</div><div class="lab-item-desc">ReAct agent with web search and calculator tools.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-solo">Solo Exercise</span> Human-in-the-Loop Agent</div><div class="lab-item-desc">interrupt_before approval flow; pytest simulates the approval step.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> Database-Connected Agent</div><div class="lab-item-desc">Agent queries PostgreSQL and ChromaDB based on query intent.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> Multi-Agent Supervisor Graph</div><div class="lab-item-desc">Researcher, Writer, and QA agents coordinated by a supervisor node.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-challenge">Challenge</span> Research Pipeline Agent</div><div class="lab-item-desc">search, summarise, fact-check, and report pipeline with full LangSmith tracing.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">LangGraph</span><span class="tool-chip">LangChain</span>
+                <span class="tool-chip">LangSmith</span><span class="tool-chip">Groq</span>
+                <span class="tool-chip">PostgreSQL</span><span class="tool-chip">Tavily Search</span><span class="tool-chip">SqliteSaver</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 05 -->
+    <div class="phase-card" id="phase-4">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#993C1D;">05</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">Model Context Protocol (MCP)</span>
+            <span class="badge badge-advanced">Advanced</span>
+            <span class="phase-weeks">Week 11–12 · Kit 3 (MCP Engineering Kit)</span>
+          </div>
+          <div class="phase-desc">Build and connect MCP servers — the open standard that lets AI agents talk to any tool, database, or API in a structured, auditable way.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">MCP Core Concepts</div>
+              <ul class="topic-list">
+                <li>What MCP solves; host, client, server, transport architecture</li>
+                <li>stdio transport; SSE transport; MCP Inspector</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Building MCP Servers</div>
+              <ul class="topic-list">
+                <li>@mcp.tool() decorator; @mcp.resource(); @mcp.prompt()</li>
+                <li>Connect to LangGraph agent; Tool schema validation</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Database MCP Servers</div>
+              <ul class="topic-list">
+                <li>Expose PostgreSQL as an MCP resource</li>
+                <li>Expose SQLite tables as queryable MCP tools</li>
+                <li>Prompt flows for structured database queries via MCP</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">MCP Ecosystem and Production</div>
+              <ul class="topic-list">
+                <li>Community servers — GitHub, Postgres, filesystem</li>
+                <li>MultiServerMCPClient; Docker-deploy; Auth bearer tokens</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> First MCP Server</div><div class="lab-item-desc">Python MCP server with a search_docs tool; connect to LangGraph agent.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-solo">Solo Exercise</span> MCP + PostgreSQL Database Tool</div><div class="lab-item-desc">Expose PostgreSQL as an MCP resource; pytest checks query results.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-challenge">Challenge</span> Multi-Server MCP Agent</div><div class="lab-item-desc">3 MCP servers: web search, PostgreSQL, and filesystem connected to one agent.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">MCP Python SDK</span><span class="tool-chip">LangGraph</span>
+                <span class="tool-chip">LangSmith</span><span class="tool-chip">FastAPI</span>
+                <span class="tool-chip">PostgreSQL</span><span class="tool-chip">SQLite</span><span class="tool-chip">MCP Inspector</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 06 — AI Security -->
+    <div class="phase-card" id="phase-5">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#BE123C;">06</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">AI Security &amp; Guardrails</span>
+            <span class="badge badge-advanced">Advanced</span>
+            <span class="badge badge-new">New</span>
+            <span class="phase-weeks">Week 13–14 · Kit 2 (Agentic AI Engineering)</span>
+          </div>
+          <div class="phase-desc">Harden your AI systems against real-world attacks — prompt injection, jailbreaks, RAG poisoning, PII leakage, and secure agent design patterns.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="new-notice"><strong>Unique to this kit:</strong> This is the only AI engineering course with a dedicated security and guardrails phase. Every topic maps to a real attack vector seen in production AI systems.</div>
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">Prompt Injection and Jailbreaks</div>
+              <ul class="topic-list">
+                <li>Direct vs indirect prompt injection attacks</li>
+                <li>Jailbreak patterns and detection strategies</li>
+                <li>Input sanitisation; Instruction hierarchy enforcement</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">PII and Secret Protection</div>
+              <ul class="topic-list">
+                <li>Secret leakage via model outputs</li>
+                <li>PII masking with Presidio and regex pipelines</li>
+                <li>Anonymisation before embedding; Audit trails in LangSmith</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">RAG Poisoning and Data Integrity</div>
+              <ul class="topic-list">
+                <li>Adversarial document injection attacks</li>
+                <li>Source validation; Chunk provenance tracking</li>
+                <li>Retrieval filtering guardrails</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Secure Agent Design</div>
+              <ul class="topic-list">
+                <li>Rate limiting; Input and output validation chains</li>
+                <li>Tool call whitelisting in LangGraph agents</li>
+                <li>Least-privilege tool access; Database query sandboxing</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> Prompt Injection Defence</div><div class="lab-item-desc">Detect and block 5 injection patterns using LangChain callbacks.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-solo">Solo Exercise</span> PII Masking Pipeline</div><div class="lab-item-desc">Mask PII before embedding and after retrieval; pytest validates redaction coverage.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> RAG Poisoning Simulation</div><div class="lab-item-desc">Inject adversarial document, observe the attack, implement source validation fix.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-eval">LangSmith Eval</span> Security Checkpoint</div><div class="lab-item-desc">Automated red-team eval — score of 0.80 or above required to proceed.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-challenge">Challenge</span> Secure Agent System</div><div class="lab-item-desc">Harden a LangGraph agent with a full guardrail stack including database query sandboxing.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">Presidio</span><span class="tool-chip">LangChain Callbacks</span>
+                <span class="tool-chip">LangGraph</span><span class="tool-chip">LangSmith</span>
+                <span class="tool-chip">Groq</span><span class="tool-chip">pytest</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 07 -->
+    <div class="phase-card" id="phase-6">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#7C3A0A;">07</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">Fine-Tuning LLMs &amp; Local Models</span>
+            <span class="badge badge-advanced">Advanced</span>
+            <span class="badge badge-gpu">GPU — Colab</span>
+            <span class="phase-weeks">Week 15–16 · Kit 5 (AI Fine-Tuning &amp; Local Models)</span>
+          </div>
+          <div class="phase-desc">Adapt open-source models to your domain using LoRA/QLoRA. Dataset prep is local, training is on Colab, inference is local via Ollama — then connect the fine-tuned model to your database pipelines.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="gpu-notice"><strong>GPU Required:</strong> Dataset prep runs locally. Training runs on Google Colab (T4 free tier or A100). Fine-tuned models are exported as GGUF and run locally via Ollama.</div>
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">LLM Strategy — When to Fine-Tune</div>
+              <ul class="topic-list">
+                <li>Decision tree: fine-tune vs RAG vs prompt engineering</li>
+                <li>Fine-tune for tone, vocabulary, and output format</li>
+                <li>NOT for new knowledge; Dataset size requirements</li>
+                <li>Cost estimate: Colab T4 vs A100</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">LoRA and QLoRA with Unsloth</div>
+              <ul class="topic-list">
+                <li>LoRA adapter layers; Unsloth 2x faster, 60% less VRAM</li>
+                <li>Llama 3.2 4-bit; LoRA config rank=16 alpha=32</li>
+                <li>Training loop and loss curve interpretation</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Dataset Preparation (Local)</div>
+              <ul class="topic-list">
+                <li>Alpaca format; ChatML format</li>
+                <li>Generate synthetic data with Groq; Push to HF Hub</li>
+                <li>Deduplication and quality filtering</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Merge, Export, and Run Locally</div>
+              <ul class="topic-list">
+                <li>Merge LoRA adapter; Export GGUF; Run with Ollama</li>
+                <li>Connect fine-tuned model to LangGraph and database pipelines</li>
+                <li>Eval fine-tuned vs base model with LangSmith</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> Fine-Tune Llama 3.2 on Colab</div><div class="lab-item-desc">Dataset provided, Colab A100/T4, Unsloth training loop.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-solo">Solo Exercise</span> Build Your Own Dataset Locally</div><div class="lab-item-desc">200 synthetic instruction pairs with Groq, ChatML format; pytest validates schema.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-challenge">Challenge</span> Domain Fine-Tune + LangSmith Eval</div><div class="lab-item-desc">Fine-tune on a chosen domain; compare fine-tuned vs base Groq model in LangSmith.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">Unsloth</span><span class="tool-chip">HuggingFace TRL</span>
+                <span class="tool-chip">PEFT</span><span class="tool-chip">Ollama</span>
+                <span class="tool-chip">Groq</span><span class="tool-chip">LangSmith</span><span class="tool-chip">Google Colab</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 08 -->
+    <div class="phase-card" id="phase-7">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#3C3489;">08</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">AI Deployment &amp; AgentOps</span>
+            <span class="badge badge-advanced">Advanced</span>
+            <span class="phase-weeks">Week 17–18 · Kit 4 (AI Deployment &amp; AgentOps)</span>
+          </div>
+          <div class="phase-desc">Ship AI systems that do not break in production — observability, eval pipelines, FastAPI deployment, database connection management, cost controls, and CI/CD.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">LangSmith in Production</div>
+              <ul class="topic-list">
+                <li>Curate eval datasets from production traces</li>
+                <li>Latency dashboards P50/P95/P99; Annotation queues</li>
+                <li>Prompt flow versioning and A/B comparison</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">FastAPI Deployment</div>
+              <ul class="topic-list">
+                <li>Wrap LangGraph agent in FastAPI; POST /invoke + /stream</li>
+                <li>Uvicorn local Windows; Auto-trace via middleware</li>
+                <li>Database connection pooling in FastAPI (asyncpg)</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Dev / Test / Prod Pipeline</div>
+              <ul class="topic-list">
+                <li>Environment-specific database configs in FastAPI</li>
+                <li>Seeded test databases for integration tests</li>
+                <li>Rollback strategy for database schema changes</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">Cost and Performance Controls</div>
+              <ul class="topic-list">
+                <li>Token counting; Exact cache; Semantic cache with ChromaDB</li>
+                <li>Prompt compression; Groq cost tracking</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">CI/CD for AI — GitHub Actions</div>
+              <ul class="topic-list">
+                <li>pytest + LangSmith eval on every PR</li>
+                <li>Fail build if eval score drops; Secrets in Actions</li>
+                <li>Docker build optional; Rollback strategy</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-guided">Guided Lab</span> FastAPI Wrapper for LangGraph</div><div class="lab-item-desc">Wrap Phase 4 agent in FastAPI with database connection pooling and LangSmith traces.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-solo">Solo Exercise</span> Automated Eval in GitHub Actions</div><div class="lab-item-desc">Workflow runs pytest and LangSmith evaluator on every PR.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-challenge">Challenge</span> Full Ops Setup</div><div class="lab-item-desc">Semantic caching, token counter middleware, latency dashboard, dev/test/prod database configs.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">FastAPI</span><span class="tool-chip">Uvicorn</span>
+                <span class="tool-chip">LangSmith</span><span class="tool-chip">GitHub Actions</span>
+                <span class="tool-chip">asyncpg</span><span class="tool-chip">Docker (optional)</span><span class="tool-chip">pytest</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 09 -->
+    <div class="phase-card" id="phase-8">
+      <div class="phase-header" onclick="togglePhase(this)">
+        <div class="phase-num" style="background:#534AB7;">09</div>
+        <div class="phase-meta">
+          <div class="phase-title-row">
+            <span class="phase-name">Business Patterns &amp; Capstone</span>
+            <span class="badge badge-capstone">Capstone</span>
+            <span style="background:#EDE9FE;color:#5B21B6;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.05em;">Bundle Only</span>
+            <span class="phase-weeks">Week 19–20</span>
+          </div>
+          <div class="phase-desc">How businesses actually deploy AI, ROI frameworks, and 4 portfolio-worthy capstone projects to build and ship.</div>
+        </div>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="phase-body-grid">
+          <div>
+            <div class="body-section-title">Topics</div>
+            <div class="topic-group">
+              <div class="topic-group-name">Real Business AI Patterns</div>
+              <ul class="topic-list">
+                <li>Customer support RAG with database-backed escalation</li>
+                <li>Internal knowledge base with enterprise PostgreSQL</li>
+                <li>Document processing — invoice and contract extraction</li>
+                <li>Sales assistant with CRM database via MCP</li>
+              </ul>
+            </div>
+            <div class="topic-group">
+              <div class="topic-group-name">ROI and AI Strategy</div>
+              <ul class="topic-list">
+                <li>Pitch to non-technical stakeholders</li>
+                <li>Build vs buy vs fine-tune decision framework</li>
+                <li>PII and data privacy; Estimating token costs</li>
+                <li>5 common failure modes in production AI</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="body-section-title">Labs</div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-challenge">Challenge</span> Capstone — Pick 1 of 4</div><div class="lab-item-desc">Build and deploy: GitHub repo + HF Spaces demo + LangSmith 50+ traces + eval of 75% or above.</div></div>
+            <div class="lab-item"><div class="lab-item-title"><span class="lab-badge lab-eval">LangSmith Eval</span> Final Evaluation</div><div class="lab-item-desc">Comprehensive eval across all skills. Score of 0.75 or above triggers certificate issuance.</div></div>
+            <div style="margin-top:16px;">
+              <div class="body-section-title">Tools</div>
+              <div class="tools-wrap">
+                <span class="tool-chip">All previous tools</span><span class="tool-chip">Gradio</span>
+                <span class="tool-chip">HuggingFace Spaces</span><span class="tool-chip">FastAPI</span><span class="tool-chip">LangSmith</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ PRICING ═══════════ -->
+<section id="tab-pricing" class="tab-section">
+  <h2 class="section-title">Kits &amp; Pricing</h2>
+  <p class="section-sub">Buy individual specialization kits or get the complete bundle at a 35% discount. All kits are self-paced with lifetime access.</p>
+
+  <div class="kit-divider">5 Specialization Kits</div>
+  <div class="pricing-grid">
+
+    <div class="kit-card">
+      <div class="kit-num">Kit 1</div>
+      <div class="kit-name">RAG Engineering Specialization</div>
+      <div class="kit-phases">Phases 01, 02, 03 · Week 1–7</div>
+      <div class="kit-price">₹3,499 <span>/ one-time</span></div>
+      <div class="kit-usd">~$42 USD</div>
+      <ul class="kit-features">
+        <li>Python, Groq, LangChain LCEL, prompt engineering</li>
+        <li>Database connection and LLM strategy (8-hr deep dive)</li>
+        <li>PostgreSQL and SQLite integration with LLMs</li>
+        <li>Dev / test / prod environment setup</li>
+        <li>Naive to advanced RAG with RAGAS evaluation</li>
+        <li>Conversational RAG and Gradio deployment</li>
+        <li>8 labs + 2 LangSmith eval checkpoints</li>
+      </ul>
+    </div>
+
+    <div class="kit-card">
+      <div class="kit-num">Kit 2</div>
+      <div class="kit-name">Agentic AI Engineering</div>
+      <div class="kit-phases">Phases 04, 06 · Week 8–14</div>
+      <div class="kit-price">₹3,999 <span>/ one-time</span></div>
+      <div class="kit-usd">~$48 USD</div>
+      <ul class="kit-features">
+        <li>LangGraph stateful agents and multi-agent graphs</li>
+        <li>Database-connected agents (PostgreSQL + ChromaDB)</li>
+        <li>Human-in-the-loop and long-term memory</li>
+        <li>AI Security and Guardrails — prompt injection, PII, RAG poisoning</li>
+        <li>Secure agent design with least-privilege tools</li>
+        <li>9 labs + red-team eval checkpoint</li>
+      </ul>
+    </div>
+
+    <div class="kit-card">
+      <div class="kit-num">Kit 3</div>
+      <div class="kit-name">MCP Engineering Kit</div>
+      <div class="kit-phases">Phase 05 · Week 11–12</div>
+      <div class="kit-price">₹2,499 <span>/ one-time</span></div>
+      <div class="kit-usd">~$30 USD</div>
+      <ul class="kit-features">
+        <li>MCP server building with tools, resources, and prompts</li>
+        <li>PostgreSQL and SQLite exposed as MCP resources</li>
+        <li>Multi-server MCP agent (web search + database + filesystem)</li>
+        <li>Docker deployment and bearer token auth</li>
+        <li>3 labs + eval checkpoint</li>
+      </ul>
+    </div>
+
+    <div class="kit-card">
+      <div class="kit-num">Kit 4</div>
+      <div class="kit-name">AI Deployment &amp; AgentOps</div>
+      <div class="kit-phases">Phase 08 · Week 17–18</div>
+      <div class="kit-price">₹2,499 <span>/ one-time</span></div>
+      <div class="kit-usd">~$30 USD</div>
+      <ul class="kit-features">
+        <li>FastAPI deployment with database connection pooling</li>
+        <li>Dev / test / prod pipeline with seeded test databases</li>
+        <li>LangSmith production dashboards and prompt flow versioning</li>
+        <li>Semantic caching and token cost controls</li>
+        <li>CI/CD with GitHub Actions and automated LangSmith eval</li>
+        <li>3 labs + ops challenge</li>
+      </ul>
+    </div>
+
+    <div class="kit-card">
+      <div class="kit-num">Kit 5</div>
+      <div class="kit-name">AI Fine-Tuning &amp; Local Models</div>
+      <div class="kit-phases">Phase 07 · Week 15–16</div>
+      <div class="kit-price">₹2,499 <span>/ one-time</span></div>
+      <div class="kit-usd">~$30 USD</div>
+      <ul class="kit-features">
+        <li>LLM strategy — when to fine-tune vs RAG vs prompt engineering</li>
+        <li>LoRA/QLoRA with Unsloth on Google Colab</li>
+        <li>Synthetic dataset generation with Groq</li>
+        <li>GGUF export and local inference via Ollama</li>
+        <li>Connect fine-tuned model to LangGraph and database pipelines</li>
+        <li>3 labs + LangSmith comparison eval</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="kit-divider">Complete Bundle</div>
+  <div style="max-width:580px;margin:0 auto 40px;">
+    <div class="kit-card featured">
+      <div class="kit-featured-badge">Best Value — Save 35%</div>
+      <div style="margin-top:10px;">
+        <div class="kit-num">Complete Bundle</div>
+        <div class="kit-name" style="font-size:1.25rem;">AI Developer Complete Kit</div>
+        <div class="kit-phases">All 9 Phases · Kits 1–5 + Capstone</div>
+        <div class="kit-price" style="font-size:2.2rem;margin-top:12px;">₹9,999 <span>/ one-time</span></div>
+        <div class="kit-usd" style="font-size:.88rem;">~$120 USD · Individual kits total ₹14,945</div>
+        <ul class="kit-features" style="margin-top:20px;">
+          <li>Everything in all 5 individual kits</li>
+          <li>Phase 9 Capstone — 4 portfolio projects (bundle-exclusive)</li>
+          <li>Completion certificate issued on final eval score of 0.75 or above</li>
+          <li>Access to instructor-only solution notebooks</li>
+          <li>Peer review community via GitHub PRs</li>
+          <li>Lifetime access and all future updates</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="kit-divider">Why Buy This Kit — Market Gaps We Fill</div>
+  <div class="diff-grid">
+    <div class="diff-card">
+      <div class="diff-gap">Most courses use OpenAI (paid API)</div>
+      <div class="diff-answer"><strong>We use Groq</strong> — free, fast inference. Zero cost to learn.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-gap">No database integration coverage</div>
+      <div class="diff-answer"><strong>8-hour database deep dive</strong> — PostgreSQL, SQLite, vector stores, text-to-SQL, dev/test/prod pipelines.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-gap">Theory-heavy, no real deployment</div>
+      <div class="diff-answer"><strong>Every module ends with a deployed artifact</strong> — Gradio, FastAPI, or HF Spaces.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-gap">No observability or tracing</div>
+      <div class="diff-answer"><strong>LangSmith from Day 1</strong> — every run is traced, every eval is automated.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-gap">No security coverage anywhere</div>
+      <div class="diff-answer"><strong>Dedicated AI Security and Guardrails phase</strong> — the only course with this.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-gap">Monolithic courses — all or nothing</div>
+      <div class="diff-answer"><strong>Modular kits</strong> — buy exactly what you need, upgrade to the bundle anytime.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-gap">No prompt engineering depth</div>
+      <div class="diff-answer"><strong>Prompt flows, zero-shot, few-shot, chain-of-thought</strong> — covered from Phase 1 and applied throughout.</div>
+    </div>
+    <div class="diff-card">
+      <div class="diff-gap">No LLM strategy guidance</div>
+      <div class="diff-answer"><strong>LLM strategy decision frameworks</strong> — when to use which model, when to fine-tune, when to use RAG.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ OUTCOMES ═══════════ -->
+<section id="tab-outcomes" class="tab-section">
+  <h2 class="section-title">What You Will Be Able to Do</h2>
+  <p class="section-sub">By the end of the complete kit, you can build, secure, and deploy AI systems independently — connected to real databases, for real business use.</p>
+
+  <div class="outcome-grid">
+    <div class="outcome-card">
+      <div class="outcome-num">Outcome 01</div>
+      <div class="outcome-title">Connect LLMs to Real Databases</div>
+      <div class="outcome-desc">Build text-to-SQL pipelines, route queries between SQL and vector stores, and manage database connections across dev, test, and prod environments using PostgreSQL and SQLite.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">Outcome 02</div>
+      <div class="outcome-title">Build Production RAG Systems</div>
+      <div class="outcome-desc">Implement retrieval-augmented generation pipelines from naive to advanced — with multi-query retrieval, re-ranking, conversational memory, and RAGAS-based evaluation.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">Outcome 03</div>
+      <div class="outcome-title">Build and Deploy AI Agents</div>
+      <div class="outcome-desc">Design and ship stateful multi-agent systems using LangGraph that retrieve information, take actions, and make decisions autonomously. Deploy them as FastAPI endpoints or Gradio apps.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">Outcome 04</div>
+      <div class="outcome-title">Connect Agents to Any Tool via MCP</div>
+      <div class="outcome-desc">Build custom MCP servers that expose databases, APIs, and filesystems to AI agents. Connect multiple servers in a single agent system using the open MCP standard.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">Outcome 05</div>
+      <div class="outcome-title">Secure AI Systems Against Real Attacks</div>
+      <div class="outcome-desc">Detect and block prompt injection, prevent jailbreaks, mask PII before it reaches the model, defend RAG pipelines against poisoning, and design agents with least-privilege tool access.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">Outcome 06</div>
+      <div class="outcome-title">Fine-Tune Open-Source Models</div>
+      <div class="outcome-desc">Adapt Llama 3.2 to your domain using LoRA/QLoRA with Unsloth on Colab. Generate synthetic training data with Groq, export GGUF, and run the fine-tuned model locally via Ollama.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">Outcome 07</div>
+      <div class="outcome-title">Monitor and Evaluate in Production</div>
+      <div class="outcome-desc">Use LangSmith to trace every run, build automated eval pipelines, set up CI/CD that fails if eval scores drop, and control costs with semantic caching and token budgets.</div>
+    </div>
+    <div class="outcome-card">
+      <div class="outcome-num">Outcome 08</div>
+      <div class="outcome-title">Apply LLM Strategy and Prompt Flows</div>
+      <div class="outcome-desc">Choose the right model for each task, design multi-step prompt flows, and apply zero-shot, few-shot, and chain-of-thought techniques to produce consistent, structured outputs.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">The One-Line Outcome</div>
+    <p style="font-size:1rem;color:var(--text-m);line-height:1.7;">By the end of this course, you can <strong>build AI systems that connect to real databases, retrieve information, take actions, and make decisions on their own</strong> — then monitor, evaluate, secure, and deploy them for real business use. You can build and ship bots yourself, seamlessly.</p>
+  </div>
+</section>
+
+<!-- ═══════════ STACK ═══════════ -->
+<section id="tab-stack" class="tab-section">
+  <h2 class="section-title">Tech Stack</h2>
+  <p class="section-sub">100% open-source, local-first. No proprietary platforms. Free tiers only — except Google Colab for GPU in Phase 7.</p>
+  <div class="stack-grid">
+
+    <div class="stack-card">
+      <div class="stack-cat-title">LLM and Inference</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">Groq API</div><div class="stack-tool-desc">Free, fast LLM inference — primary provider throughout</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">Ollama</div><div class="stack-tool-desc">Local inference for fine-tuned GGUF models</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">HuggingFace Hub</div><div class="stack-tool-desc">Model weights, datasets, and Spaces deployment</div></div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-cat-title">Databases</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">PostgreSQL</div><div class="stack-tool-desc">Primary relational database for production workloads</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">SQLite</div><div class="stack-tool-desc">Local dev database and agent memory store</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">asyncpg</div><div class="stack-tool-desc">Async PostgreSQL driver for FastAPI</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">LangChain SQLDatabaseChain</div><div class="stack-tool-desc">Text-to-SQL with LLM query planning</div></div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-cat-title">Vector Databases</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">ChromaDB</div><div class="stack-tool-desc">Local vector store with persistence</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">FAISS</div><div class="stack-tool-desc">In-memory vector search for small datasets</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">HuggingFace Embeddings</div><div class="stack-tool-desc">Free, CPU-based sentence embeddings</div></div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-cat-title">Orchestration</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">LangChain LCEL</div><div class="stack-tool-desc">Pipe-operator chain composition</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">LangGraph</div><div class="stack-tool-desc">Stateful agent graphs and multi-agent systems</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">MCP Python SDK</div><div class="stack-tool-desc">Model Context Protocol server and client</div></div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-cat-title">Observability and Evaluation</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">LangSmith</div><div class="stack-tool-desc">Tracing, evaluation, and dashboards — always on from Day 1</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">RAGAS</div><div class="stack-tool-desc">RAG evaluation metrics — faithfulness, relevancy, recall</div></div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-cat-title">Security and Guardrails</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">Presidio</div><div class="stack-tool-desc">PII detection and anonymisation</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">LangChain Callbacks</div><div class="stack-tool-desc">Input and output guardrail hooks</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">Pydantic Validators</div><div class="stack-tool-desc">Structured output validation chains</div></div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-cat-title">Fine-Tuning</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">Unsloth</div><div class="stack-tool-desc">2x faster LoRA/QLoRA, 60% less VRAM</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">HuggingFace TRL</div><div class="stack-tool-desc">SFTTrainer for supervised fine-tuning</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">PEFT</div><div class="stack-tool-desc">Parameter-efficient fine-tuning adapters</div></div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-cat-title">Deployment</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">FastAPI</div><div class="stack-tool-desc">REST API endpoints for AI services with database pooling</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">Gradio</div><div class="stack-tool-desc">Quick UI prototyping and demos</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">HuggingFace Spaces</div><div class="stack-tool-desc">Free demo deployment platform</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">Docker Desktop</div><div class="stack-tool-desc">Optional containerisation with WSL2 backend</div></div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="stack-cat-title">Testing and CI/CD</div>
+      <div class="stack-tool-row">
+        <div class="stack-tool"><div class="stack-tool-name">pytest</div><div class="stack-tool-desc">Unit and integration tests embedded in notebooks</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">GitHub Actions</div><div class="stack-tool-desc">CI/CD with automated LangSmith eval on every PR</div></div>
+        <div class="stack-tool"><div class="stack-tool-name">Tavily</div><div class="stack-tool-desc">Web search API for agent tools</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer class="page-footer">
+  <p>Practical AI/ML Engineering — AI Developer Kit &nbsp;·&nbsp; Self-paced &nbsp;·&nbsp; Local-first &nbsp;·&nbsp; Open-source only</p>
+  <p style="margin-top:6px;color:#94A3B8;">All 9 phases run on your local Windows machine. Google Colab used once for GPU fine-tuning. Groq API is free.</p>
+</footer>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+  function togglePhase(header) {
+    header.closest('.phase-card').classList.toggle('open');
+  }
+  function jumpToPhase(index) {
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-curriculum').classList.add('active');
+    document.querySelectorAll('.nav-tab')[1].classList.add('active');
+    setTimeout(() => {
+      const card = document.getElementById('phase-' + index);
+      if (card) { card.classList.add('open'); card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }, 50);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "title": "MCP",
+  "intro_file": "README.md",
+  "notebooks": [
+    { "file": "lab1_mcp_fundamentals_solstice.ipynb", "title": "MCP Fundamentals (Solstice)", "question_type": "reflection" },
+    { "file": "lab2_sqlite_mcp_solstice.ipynb", "title": "SQLite MCP (Solstice)", "question_type": "reflection" },
+    { "file": "lab3_multi_server_agent_solstice.ipynb", "title": "Multi-Server Agent (Solstice)", "question_type": "reflection" }
+  ]
+}

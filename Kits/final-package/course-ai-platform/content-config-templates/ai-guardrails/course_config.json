@@ -1,0 +1,11 @@
+{
+  "title": "AI Guardrails",
+  "intro_file": "README.md",
+  "notebooks": [
+    { "file": "01_prompt_injection_defence.ipynb", "title": "Prompt Injection Defence", "question_type": "reflection" },
+    { "file": "02_pii_masking_pipeline.ipynb", "title": "PII Masking Pipeline", "question_type": "reflection" },
+    { "file": "03_rag_poisoning.ipynb", "title": "RAG Poisoning", "question_type": "reflection" },
+    { "file": "04_langsmith_eval_checkpoint.ipynb", "title": "LangSmith Eval Checkpoint", "question_type": "reflection" },
+    { "file": "05_secure_agent.ipynb", "title": "Secure Agent", "question_type": "reflection" }
+  ]
+}

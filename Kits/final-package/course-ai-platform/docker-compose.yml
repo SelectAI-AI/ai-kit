@@ -1,0 +1,31 @@
+services:
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      # Overrides for paths that only make sense inside the container —
+      # everything else (SECRET_KEY, DEMO_MODE, etc.) comes from backend/.env
+      CONTENT_ROOT: /content
+      DATABASE_URL: sqlite:////app/data/platform.db
+    volumes:
+      - ..:/content:ro                    # final-package/ (notebooks, course_config.json, etc.), read-only
+      - platform_db:/app/data
+      - certificates:/app/certificates_store
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ""             # relative — nginx proxies /api to backend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  platform_db:
+  certificates:

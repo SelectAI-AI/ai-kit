@@ -1,0 +1,24 @@
+# Core -- required by all three notebooks
+mcp>=1.8.0
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=2.0.0
+aiosqlite>=0.20.0
+langchain>=0.3.0
+langchain-core
+langchain-groq>=0.2.0
+langchain-mcp-adapters>=0.1.0
+langchain-community>=0.3.0
+langchain-chroma>=0.1.4
+chromadb>=0.5.0
+langchain-text-splitters
+python-dotenv>=1.0.1
+pydantic>=2.7.0
+reportlab>=4.0.0
+pypdf>=4.0.0
+numpy
+ipykernel>=6.29.0
+
+# Optional -- only needed for the live (non-offline-fallback) embeddings path in Lab 3.
+# Skip these and Helios automatically uses a deterministic offline hashing embedder instead.
+# langchain-huggingface
+# sentence-transformers

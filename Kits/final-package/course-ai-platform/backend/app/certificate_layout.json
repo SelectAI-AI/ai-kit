@@ -1,0 +1,71 @@
+{
+  "template_file": "certificate_template.jpeg",
+  "debug_placeholders": false,
+  "page": {
+    "fallback_size": "A4_landscape",
+    "size_from_image": true
+  },
+  "colors": {
+    "name": "#17236B",
+    "course": "#365FC3",
+    "meta": "#3A4152",
+    "caption": "#3A4152",
+    "placeholder_outline": "#B14FE0"
+  },
+  "fields": {
+    "recipient_name": {
+      "text_source": "full_name",
+      "x": 0.5,
+      "y": 0.532,
+      "align": "center",
+      "font": "Helvetica-Bold",
+      "size": 34,
+      "color": "name",
+      "max_width": 0.72
+    },
+    "course_title": {
+      "text_source": "course_title",
+      "x": 0.5,
+      "y": 0.425,
+      "align": "center",
+      "font": "Helvetica-Bold",
+      "size": 18,
+      "color": "course",
+      "max_width": 0.7
+    },
+    "issue_date": {
+      "text_source": "issued_at",
+      "format": "{date:%B %d, %Y}",
+      "x": 0.2678,
+      "y": 0.12,
+      "align": "center",
+      "font": "Helvetica",
+      "size": 9,
+      "color": "meta"
+    },
+    "certificate_id": {
+      "text_source": "cert_id",
+      "format": "{cert_id}",
+      "x": 0.5615,
+      "y": 0.045,
+      "align": "center",
+      "font": "Helvetica",
+      "size": 10,
+      "color": "meta",
+      "max_width": 0.1325
+    }
+  },
+  "qr": {
+    "enabled": true,
+    "url_template": "{frontend_base_url}/verify/{cert_id}",
+    "x": 0.108,
+    "y": 0.178,
+    "size": 0.0697,
+    "anchor": "center",
+    "caption": "Scan to verify",
+    "caption_offset_y": -0.038,
+    "caption_font": "Helvetica",
+    "caption_size": 8,
+    "caption_color": "caption"
+  }
+}

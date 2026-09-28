@@ -1,0 +1,14 @@
+{
+  "title": "Agentic AI",
+  "intro_file": "FLOW_GUIDE.md",
+  "notebooks": [
+    { "file": "langgraph_fundamentals.ipynb", "title": "LangGraph Fundamentals", "question_type": "reflection" },
+    { "file": "first_langgraph_agent.ipynb", "title": "Your First LangGraph Agent", "question_type": "reflection" },
+    { "file": "agent_patterns_langgraph.ipynb", "title": "Agent Patterns in LangGraph", "question_type": "reflection" },
+    { "file": "multi_agent_graphs.ipynb", "title": "Multi-Agent Graphs", "question_type": "reflection" },
+    { "file": "guided_lab_multi_agent_supervisor_graph.ipynb", "title": "Guided Lab: Multi-Agent Supervisor Graph", "question_type": "reflection" },
+    { "file": "database_connected_agents_sqlite_only.ipynb", "title": "Database-Connected Agents (SQLite)", "question_type": "reflection" },
+    { "file": "guided_lab_database_connected_agent.ipynb", "title": "Guided Lab: Database-Connected Agent", "question_type": "reflection" },
+    { "file": "long_term_memory_langgraph.ipynb", "title": "Long-Term Memory in LangGraph", "question_type": "reflection" }
+  ]
+}

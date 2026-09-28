@@ -1,0 +1,10 @@
+{
+  "title": "AI Ops",
+  "intro_file": "RUN.md",
+  "notebooks": [
+    { "file": "01_dev_test_prod_pipeline.ipynb", "title": "Dev / Test / Prod Pipeline", "question_type": "reflection" },
+    { "file": "fastapi_deployment_diffsage.ipynb", "title": "FastAPI Deployment (DiffSage)", "question_type": "reflection" },
+    { "file": "langsmith_in_production_ticketpilot.ipynb", "title": "LangSmith in Production (TicketPilot)", "question_type": "reflection" },
+    { "file": "cost_performance_cicd_claimsense.ipynb", "title": "Cost, Performance & CI/CD (ClaimSense)", "question_type": "reflection" }
+  ]
+}

@@ -47,3 +47,6 @@ Thumbs.db
 .coverage
 htmlcov/
 coverage/
+
+# Internal Kiro specs/steering inside the shipped kit — not for the public repo
+Kits/final-package/.kiro/

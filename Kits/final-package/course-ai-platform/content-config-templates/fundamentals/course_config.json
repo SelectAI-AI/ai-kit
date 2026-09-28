@@ -1,0 +1,9 @@
+{
+  "title": "Fundamentals",
+  "intro_file": "setup.md",
+  "notebooks": [
+    { "file": "llm_fundamentals.ipynb", "title": "LLM Fundamentals", "question_type": "reflection" },
+    { "file": "prompt_engineering_fundamentals.ipynb", "title": "Prompt Engineering Fundamentals", "question_type": "reflection" },
+    { "file": "lcel_groq_langsmith_tracing.ipynb", "title": "LCEL, Groq & LangSmith Tracing", "question_type": "reflection" }
+  ]
+}
