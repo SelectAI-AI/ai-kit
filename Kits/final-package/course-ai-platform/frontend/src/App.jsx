@@ -14,6 +14,8 @@ import ModuleDetail from "./pages/ModuleDetail";
 import Certificates from "./pages/Certificates";
 import Verify from "./pages/Verify";
 import Instructor from "./pages/Instructor";
+import AdminOrders from "./pages/AdminOrders";
+import Pricing from "./pages/Pricing";
 
 export default function App() {
   // Screen_Capture_Guard drives a full-app blur while the window is inactive.
@@ -35,15 +37,18 @@ export default function App() {
         >
           <DemoBanner />
           <Navbar />
-          <main className="max-w-5xl mx-auto px-5 py-10">
+          <main className="max-w-5xl mx-auto px-5 py-10 animate-rise">
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/verify/:certId" element={<Verify />} />
+              {/* Pricing is public so visitors can see cost before purchasing (Req 11.1). */}
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
               <Route path="/modules/:slug" element={<PrivateRoute><ModuleDetail /></PrivateRoute>} />
               <Route path="/certificates" element={<PrivateRoute><Certificates /></PrivateRoute>} />
               <Route path="/instructor" element={<PrivateRoute instructorOnly><Instructor /></PrivateRoute>} />
+              <Route path="/admin/orders" element={<PrivateRoute instructorOnly><AdminOrders /></PrivateRoute>} />
             </Routes>
           </main>
         </div>

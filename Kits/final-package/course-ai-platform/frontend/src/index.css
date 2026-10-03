@@ -5,37 +5,103 @@
   --font-display: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
 
-  --color-ink-950: #0b0e14;
-  --color-ink-900: #12161f;
-  --color-ink-800: #1a2030;
-  --color-ink-700: #232a38;
-  --color-ink-600: #303a4d;
+  /* Dark tech base: near-black with a faint violet cast, matching the SelectAI showcase. */
+  --color-ink-950: #080510;
+  --color-ink-900: #0f0a1a;
+  --color-ink-800: #181225;
+  --color-ink-700: #241a38;
+  --color-ink-600: #352a4d;
 
-  --color-brass-300: #f0d9a8;
-  --color-brass-400: #e8c078;
-  --color-brass-500: #d8a657;
-  --color-brass-600: #b8863c;
+  /* Primary accent: electric magenta (CTA buttons, logo, active highlights). */
+  --color-brass-300: #ff7ad4;
+  --color-brass-400: #ff3fbd;
+  --color-brass-500: #e3119b;
+  --color-brass-600: #b40c7a;
 
-  --color-teal-400: #7fcbb4;
-  --color-teal-500: #5fb49c;
+  /* Secondary accent: cyan (eyebrows, outlined buttons, secondary highlights). */
+  --color-teal-400: #4fe0ec;
+  --color-teal-500: #2ec5d3;
 
-  --color-rust-400: #d98f93;
-  --color-rust-500: #c1666b;
+  /* Danger / error: warm pink-red tuned to the palette. */
+  --color-rust-400: #ff6b8a;
+  --color-rust-500: #e8445f;
 
-  --color-paper-100: #e4e8f1;
-  --color-paper-300: #aab2c4;
-  --color-paper-400: #7c879c;
-  --color-paper-600: #4a5468;
+  /* Text: cool off-whites on the dark base. */
+  --color-paper-100: #ece9f5;
+  --color-paper-300: #b7b0cc;
+  --color-paper-400: #8a829f;
+  /* Lightened to clear WCAG AA (4.5:1) for small text on the dark surfaces. */
+  --color-paper-600: #7b7391;
+}
+
+:root {
+  color-scheme: dark;
 }
 
 body {
   font-family: var(--font-body);
-  background-color: var(--color-ink-950);
   color: var(--color-paper-100);
+  background-color: var(--color-ink-950);
+  /* Ambient depth: two accent glows plus a faint technical grid, all static so
+     they cost nothing after first paint. Fixed so the texture does not scroll. */
+  background-image:
+    radial-gradient(60rem 60rem at 12% -8%, rgba(227, 17, 155, 0.14), transparent 60%),
+    radial-gradient(50rem 50rem at 108% 8%, rgba(46, 197, 211, 0.12), transparent 55%),
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+  background-attachment: fixed;
 }
 
 .font-display {
   font-family: var(--font-display);
+}
+
+/* Gradient text used for hero / brand display type. */
+.text-gradient {
+  background-image: linear-gradient(100deg, var(--color-brass-400), var(--color-teal-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glass surface: layered translucency + inner edge highlight for real depth. */
+.glass {
+  background: linear-gradient(
+      160deg,
+      rgba(36, 26, 56, 0.72),
+      rgba(15, 10, 26, 0.72)
+    );
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 48px rgba(0, 0, 0, 0.4);
+}
+
+/* Entrance animation for route content and cards. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Slow drift for ambient hero orbs. */
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -18px, 0); }
+}
+.animate-drift {
+  animation: drift 11s ease-in-out infinite;
 }
 
 .ledger-scroll::-webkit-scrollbar {
@@ -44,4 +110,19 @@ body {
 .ledger-scroll::-webkit-scrollbar-thumb {
   background: var(--color-ink-700);
   border-radius: 4px;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--color-ink-900);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-drift {
+    animation: none;
+  }
 }
