@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from .. import content_scanner as cs
+from ..access_service import can_access_slug
 from ..config import settings
 from ..database import get_db
 from ..deps import get_current_user
@@ -23,6 +24,24 @@ def _default_prompt(qtype: str):
     if qtype == "self_attest":
         return "Confirm that you have completed this notebook."
     return None
+
+
+def _assert_slug_access(db: Session, user: models.User, slug: str):
+    """Deny gated module/notebook access without an entitlement/exemption (Req 9.1, 9.2).
+
+    Instructors, DEMO_MODE, and free slugs are exempt via the Access_Service; an
+    active entitlement covering the slug also grants access. Otherwise a ``403``
+    is raised carrying the ``required_kit_id`` the buyer needs to unlock the slug.
+    """
+    decision = can_access_slug(db, user, slug)
+    if not decision.allowed:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "message": "This module is locked. Purchase the required kit to unlock it.",
+                "required_kit_id": decision.required_kit_id,
+            },
+        )
 
 
 @router.get("", response_model=list[schemas.ModuleSummary])
@@ -54,6 +73,9 @@ def module_detail(slug: str, db: Session = Depends(get_db), user: models.User = 
     manifest = cs.get_module_manifest(slug)
     if not manifest:
         raise HTTPException(status_code=404, detail="Module not found")
+
+    # Gate paid module detail behind an active entitlement/exemption (Req 9.1, 9.2).
+    _assert_slug_access(db, user, slug)
 
     if settings.demo_mode:
         progress = ensure_demo_progress_rows(db, user.id, slug, manifest["notebooks"])
@@ -186,6 +208,8 @@ def _assert_unlocked(db, user, slug, filename):
 @router.get("/{slug}/notebook/{filename}/view", response_class=HTMLResponse)
 def view_notebook(slug: str, filename: str, db: Session = Depends(get_db),
                    user: models.User = Depends(get_current_user)):
+    # Gate paid notebook content behind an active entitlement/exemption (Req 9.1, 9.2).
+    _assert_slug_access(db, user, slug)
     _assert_unlocked(db, user, slug, filename)
     path = cs.notebook_path(slug, filename)
     if not path:

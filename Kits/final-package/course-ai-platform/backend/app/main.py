@@ -3,7 +3,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
 from .database import Base, engine, apply_migrations
-from .routers import auth, modules, progress, certificates, instructor
+from .routers import (
+    auth,
+    modules,
+    progress,
+    certificates,
+    instructor,
+    pricing,
+    discounts,
+    payments,
+    admin_orders,
+)
 
 Base.metadata.create_all(bind=engine)
 apply_migrations(engine)  # adds demo_initialised column if absent
@@ -24,6 +34,10 @@ app.include_router(modules.router)
 app.include_router(progress.router)
 app.include_router(certificates.router)
 app.include_router(instructor.router)
+app.include_router(pricing.router)
+app.include_router(discounts.router)
+app.include_router(payments.router)
+app.include_router(admin_orders.router)
 
 
 @app.get("/health")

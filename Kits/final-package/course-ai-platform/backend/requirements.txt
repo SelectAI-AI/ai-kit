@@ -13,4 +13,5 @@ ipython==9.15.0
 reportlab==4.4.10
 qrcode[pil]==8.2
 python-dotenv==1.2.2
+razorpay==2.0.0
 hypothesis==6.131.15

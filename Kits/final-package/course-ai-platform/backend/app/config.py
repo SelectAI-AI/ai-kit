@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     # guest session is injected so the platform can be shown without real accounts
     demo_mode: bool = False
 
+    # Razorpay payment credentials (test mode first). Read from .env; the key
+    # secret is never serialized into responses, logs, or error messages.
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
