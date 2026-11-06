@@ -1,30 +1,39 @@
 import React, { useEffect, useState } from "react"; // eslint-disable-line no-unused-vars
 import { useLocation } from "react-router-dom";
 import api from "../api";
-import { formatPaiseToInr, tierLabel } from "../lib/pricing";
+import { CURRENCY_OPTIONS, formatMinor, pickCurrency } from "../lib/pricing";
 import { startCheckout } from "../lib/checkout";
-import { Check, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, Info, Lock } from "lucide-react";
 
-// Public pricing page (Req 11). Every displayed price is sourced from the
-// catalog API (GET /api/pricing/catalog) rather than static client values
-// (Req 11.5): the base kit price, the bundle price, and the student discount
-// tiers are all derived from the catalog's `base_price_paise` /
-// `bundle_base_paise`. Non-purchasable kits render without a buy action
-// (Req 11.4). Styling is Tailwind utilities only.
+// Public pricing page (Req 11), laid out like the selectAi pricing page: a
+// currency selector, a navy hero with the bundle price, and a product/price
+// table with an Enroll Now button. Every price comes from the catalog API
+// (GET /api/pricing/catalog) in the selected currency (Req 11.5). Non-purchasable
+// kits render without a buy action (Req 11.4). Styling is Tailwind utilities only.
 
-// Student discount tiers displayed as a percentage off the catalog base price
-// (Req 11.3). The percentages are the mandated tier definitions; the resulting
-// amounts are computed from the catalog base so they stay in sync with pricing.
-const STUDENT_TIERS = [
-  { tier: "student_t1", percentOff: 35 },
-  { tier: "student_t2", percentOff: 50 },
-];
+// Marketing copy from the selectAi pricing page; the catalog does not carry it.
+const LABS_COUNT = 35;
+const CURRENCY_KEY = "currency";
+
+// Catalog responses from before multi-currency only carry INR in the legacy
+// `*_paise` fields, so fall back to those when the `prices` maps are absent.
+const kitPrice = (kit, currency) =>
+  kit.prices?.[currency] ?? (currency === "INR" ? kit.base_price_paise : undefined);
+const bundlePrice = (catalog, currency) =>
+  catalog.bundle_prices?.[currency] ?? (currency === "INR" ? catalog.bundle_base_paise : undefined);
+
+// "kit3" -> "Kit 3"
+const kitNumber = (kitId) => {
+  const digits = kitId.replace(/\D/g, "");
+  return digits ? `Kit ${digits}` : "Kit";
+};
 
 export default function Pricing() {
   const [catalog, setCatalog] = useState(null);
   const [error, setError] = useState("");
   const [checkoutError, setCheckoutError] = useState("");
   const [buying, setBuying] = useState("");
+  const [currency, setCurrency] = useState("");
   const location = useLocation();
 
   // A denied gated module view directs the user here with ?kit=<required_kit_id>
@@ -33,38 +42,43 @@ export default function Pricing() {
 
   useEffect(() => {
     api.get("/api/pricing/catalog")
-      .then(({ data }) => setCatalog(data))
+      .then(({ data }) => {
+        setCatalog(data);
+        const offered = data.currencies?.length ? data.currencies : ["INR"];
+        setCurrency(pickCurrency(offered, localStorage.getItem(CURRENCY_KEY)));
+      })
       .catch(() => setError("Could not load pricing. Is the backend running?"));
   }, []);
 
+  const chooseCurrency = (code) => {
+    setCurrency(code);
+    localStorage.setItem(CURRENCY_KEY, code);
+  };
+
   // Open Razorpay Standard Checkout for a selection via the checkout flow
-  // (lib/checkout.js), which fetches a server-authoritative order and opens
-  // Checkout in INR with the returned key id.
+  // (lib/checkout.js), which fetches a server-authoritative order in the chosen
+  // currency and opens Checkout with the returned key id.
   const buy = async (selection) => {
     setCheckoutError("");
     setBuying(selection);
     try {
-      await startCheckout(selection);
+      await startCheckout(selection, { currency });
     } catch (err) {
-      setCheckoutError(err?.message || "Checkout could not be completed.");
+      setCheckoutError(err?.response?.data?.detail || err?.message || "Checkout could not be completed.");
     } finally {
       setBuying("");
     }
   };
 
+  const offeredCurrencies = catalog?.currencies?.length ? catalog.currencies : ["INR"];
   const sellableKits = catalog?.kits?.filter((k) => k.purchasable) ?? [];
   const otherKits = catalog?.kits?.filter((k) => !k.purchasable) ?? [];
-  // Base kit price (₹9,999) sourced from the first kit's catalog base price,
-  // falling back to any kit so the anchor always reflects the catalog (Req 11.2).
-  const baseKitPaise = catalog?.kits?.[0]?.base_price_paise ?? 0;
+  const moduleCount = new Set(sellableKits.flatMap((k) => k.slugs)).size;
+  const bundleMinor = catalog ? bundlePrice(catalog, currency) : undefined;
+  const bundleText = bundleMinor === undefined ? "" : formatMinor(bundleMinor, currency);
 
   return (
     <div>
-      <h1 className="font-display text-xl text-paper-100 mb-1">Pricing</h1>
-      <p className="text-paper-400 text-sm mb-8">
-        Buy a kit to unlock its modules, or get everything with the full bundle.
-      </p>
-
       {requiredKitId && (
         <p className="mb-6 rounded-lg border border-brass-500/40 bg-brass-500/10 px-4 py-2.5 text-sm text-brass-300">
           That module is locked. Buy the highlighted kit below to unlock it.
@@ -76,111 +90,131 @@ export default function Pricing() {
 
       {catalog && (
         <>
-          {/* Bundle + base-kit anchors (Req 11.2) */}
-          <div className="grid gap-4 sm:grid-cols-2 mb-10">
-            <div className="rounded-xl border border-brass-500/40 bg-ink-900/70 p-5">
-              <div className="flex items-center gap-1.5 text-brass-400 text-sm font-display mb-1">
-                <Sparkles size={14} /> full bundle
-              </div>
-              <p className="text-paper-100 font-display text-2xl mb-1">
-                {formatPaiseToInr(catalog.bundle_base_paise)}
-              </p>
-              <p className="text-paper-400 text-sm mb-4">
-                Every sellable kit plus the capstone — {catalog.bundle_slugs.length} modules.
-              </p>
-              <button
-                type="button"
-                data-testid="buy-bundle"
-                disabled={buying === "bundle"}
-                onClick={() => buy("bundle")}
-                className="rounded-lg bg-brass-500 px-4 py-2 text-sm font-display text-ink-950 hover:bg-brass-400 transition-colors disabled:opacity-50"
+          {/* Currency selector */}
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink-700 bg-white px-4 py-3 shadow-sm">
+            <label className="flex items-center gap-3 text-sm font-display text-paper-300">
+              <span className="font-semibold">Currency</span>
+              <select
+                value={currency}
+                onChange={(e) => chooseCurrency(e.target.value)}
+                className="rounded-lg border border-brass-500/40 bg-ink-800 px-3 py-1.5 text-sm font-semibold text-teal-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60"
               >
-                {buying === "bundle" ? "opening checkout…" : "Buy bundle"}
-              </button>
-            </div>
-
-            <div className="rounded-xl border border-ink-700 bg-ink-900/70 p-5">
-              <div className="text-paper-400 text-sm font-display mb-1">base kit</div>
-              <p className="text-paper-100 font-display text-2xl mb-1">
-                {formatPaiseToInr(baseKitPaise)}
-              </p>
-              <p className="text-paper-400 text-sm">Per individual kit, standard price.</p>
-            </div>
+                {offeredCurrencies.map((code) => (
+                  <option key={code} value={code}>
+                    {CURRENCY_OPTIONS.find((o) => o.code === code)?.label ?? code}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="flex items-center gap-2 rounded-lg bg-cyan-50 px-3 py-1.5 text-sm text-paper-300">
+              <Info size={14} aria-hidden="true" /> Prices shown in your selected currency.
+            </p>
           </div>
 
-          {/* Student discount tiers (Req 11.3) */}
-          <h2 className="font-display text-paper-100 text-sm mb-3">Student discounts</h2>
-          <div className="grid gap-4 sm:grid-cols-2 mb-10">
-            {STUDENT_TIERS.map(({ tier, percentOff }) => {
-              const discountedPaise = Math.round(baseKitPaise * (1 - percentOff / 100));
+          {/* Hero: the bundle price */}
+          <section className="mb-5 rounded-3xl bg-[#190a52] px-6 py-10 text-center text-white">
+            <p className="text-sm text-white/60">Applied AI Engineering Program</p>
+            {bundleText && (
+              <p className="mt-3 flex items-baseline justify-center gap-2 font-brand font-black">
+                <span className="text-3xl">{bundleText.charAt(0)}</span>
+                <span className="text-6xl">{bundleText.slice(1)}</span>
+                <span className="text-xl font-semibold text-white/50">{currency}</span>
+              </p>
+            )}
+            <p className="mt-4 text-sm font-semibold text-white/90">One-time payment • No launch discounts</p>
+            <p className="mt-1 text-sm text-white/50">
+              {sellableKits.length} Kits • {moduleCount} Modules • {LABS_COUNT} Hands-on Labs
+            </p>
+          </section>
+
+          {/* Product / price table */}
+          <section className="overflow-hidden rounded-2xl border border-ink-700 bg-white shadow-sm">
+            <div className="grid grid-cols-[1fr_auto_5rem] items-center gap-4 bg-ink-800/70 px-6 py-3 font-brand text-xs font-bold uppercase tracking-widest">
+              <span className="text-teal-400">Product</span>
+              <span className="text-paper-100 text-right">Price</span>
+              <span aria-hidden="true" />
+            </div>
+
+            {sellableKits.map((kit) => {
+              const minor = kitPrice(kit, currency);
+              const highlighted = kit.kit_id === requiredKitId;
               return (
                 <div
-                  key={tier}
-                  className="rounded-xl border border-teal-500/30 bg-ink-900/70 p-5"
+                  key={kit.kit_id}
+                  data-required={highlighted ? "true" : undefined}
+                  className={`grid grid-cols-[1fr_auto_5rem] items-center gap-4 border-t border-ink-700 px-6 py-4 ${
+                    highlighted ? "bg-brass-500/10 ring-1 ring-inset ring-brass-500/50" : ""
+                  }`}
                 >
-                  <div className="text-teal-400 text-sm font-display mb-1">
-                    {tierLabel(tier)}
+                  <div>
+                    <p className="text-paper-100">
+                      <span>{kitNumber(kit.kit_id)} — </span>
+                      <span>{kit.name}</span>
+                    </p>
+                    <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-paper-400">
+                      {kit.slugs.map((slug) => (
+                        <span key={slug}>{slug}</span>
+                      ))}
+                    </p>
                   </div>
-                  <p className="text-paper-100 font-display text-2xl mb-1">
-                    {formatPaiseToInr(discountedPaise)}
-                  </p>
-                  <p className="text-paper-400 text-sm">{percentOff}% off the base kit price.</p>
+                  <span className="font-brand text-lg font-bold text-paper-100 text-right">
+                    {minor === undefined ? "—" : formatMinor(minor, currency)}
+                  </span>
+                  {minor === undefined ? (
+                    <span className="text-xs text-paper-400">n/a in {currency}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      data-testid={`buy-${kit.kit_id}`}
+                      disabled={buying === kit.kit_id}
+                      onClick={() => buy(kit.kit_id)}
+                      aria-label={`Buy ${kit.name}`}
+                      className="rounded-lg border border-brass-500 px-3 py-1.5 text-xs font-semibold text-brass-400 transition-colors hover:bg-brass-500/10 disabled:opacity-50"
+                    >
+                      {buying === kit.kit_id ? "Opening…" : "Buy"}
+                    </button>
+                  )}
                 </div>
               );
             })}
+
+            {/* Bundle row */}
+            <div className="grid grid-cols-[1fr_auto_5rem] items-center gap-4 border-t border-ink-700 bg-ink-800/70 px-6 py-4">
+              <p className="font-bold text-paper-100">Complete {sellableKits.length}-Kit Bundle</p>
+              <span className="font-brand text-lg font-black text-gradient text-right">{bundleText || "—"}</span>
+              <span aria-hidden="true" />
+            </div>
+          </section>
+
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              data-testid="buy-bundle"
+              disabled={buying === "bundle" || bundleMinor === undefined}
+              onClick={() => buy("bundle")}
+              className="btn-brand inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-display"
+            >
+              {buying === "bundle" ? "Opening checkout…" : "Enroll Now"}
+              <ArrowRight size={16} aria-hidden="true" />
+            </button>
           </div>
 
-          {/* Sellable kits (Req 11.1) */}
-          <h2 className="font-display text-paper-100 text-sm mb-3">Kits</h2>
-          <div className="grid gap-4 sm:grid-cols-2 mb-10">
-            {sellableKits.map((kit) => (
-              <div
-                key={kit.kit_id}
-                data-required={kit.kit_id === requiredKitId ? "true" : undefined}
-                className={`rounded-xl border bg-ink-900/70 p-5 flex flex-col ${
-                  kit.kit_id === requiredKitId ? "border-brass-500 ring-1 ring-brass-500/50" : "border-ink-700"
-                }`}
-              >
-                <div className="flex items-baseline justify-between mb-2">
-                  <h3 className="font-display text-paper-100">{kit.name}</h3>
-                  <span className="font-display text-brass-400">
-                    {formatPaiseToInr(kit.base_price_paise)}
-                  </span>
-                </div>
-                <ul className="text-paper-400 text-sm space-y-1 mb-4 flex-1">
-                  {kit.slugs.map((slug) => (
-                    <li key={slug} className="flex items-center gap-1.5">
-                      <Check size={13} className="text-teal-400 shrink-0" />
-                      {slug}
-                    </li>
-                  ))}
-                </ul>
-                {/* Purchasable kit -> buy action (Req 11.1) */}
-                <button
-                  type="button"
-                  data-testid={`buy-${kit.kit_id}`}
-                  disabled={buying === kit.kit_id}
-                  onClick={() => buy(kit.kit_id)}
-                  className="rounded-lg bg-brass-500 px-4 py-2 text-sm font-display text-ink-950 hover:bg-brass-400 transition-colors disabled:opacity-50"
-                >
-                  {buying === kit.kit_id ? "opening checkout…" : `Buy ${kit.name}`}
-                </button>
-              </div>
-            ))}
-          </div>
+          <p className="mt-6 text-center text-xs text-paper-400">
+            Approved students get 35% or 50% off individual kits; the discount is applied at checkout.
+          </p>
 
           {/* Non-purchasable kits render WITHOUT a buy action (Req 11.4) */}
           {otherKits.length > 0 && (
-            <>
+            <div className="mt-10">
               <h2 className="font-display text-paper-100 text-sm mb-3">Coming soon</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {otherKits.map((kit) => (
                   <div
                     key={kit.kit_id}
-                    className="rounded-xl border border-dashed border-ink-700 bg-ink-900/40 p-5"
+                    className="rounded-xl border border-dashed border-ink-600 bg-white/50 p-5"
                   >
                     <div className="flex items-baseline justify-between mb-2">
-                      <h3 className="font-display text-paper-400">{kit.name}</h3>
+                      <h3 className="font-display text-paper-300">{kit.name}</h3>
                       <span className="flex items-center gap-1 text-paper-600 text-xs font-display">
                         <Lock size={12} /> not available
                       </span>
@@ -191,7 +225,7 @@ export default function Pricing() {
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </>
       )}

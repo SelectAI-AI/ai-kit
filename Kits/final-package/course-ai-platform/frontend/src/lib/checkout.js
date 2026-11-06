@@ -33,6 +33,7 @@ import { loadRazorpayCheckout } from "./razorpay.js";
  * @property {() => Promise<any>} [loadScript] - Loader resolving to the
  *   `window.Razorpay` constructor. Defaults to {@link loadRazorpayCheckout};
  *   override in tests to mock the script.
+ * @property {string} [currency] - Currency to charge in ("INR" or "USD").
  * @property {string} [name] - Checkout display name (business/brand).
  * @property {string} [description] - Checkout description line.
  * @property {Record<string, string>} [prefill] - Prefilled customer fields.
@@ -49,10 +50,13 @@ import { loadRazorpayCheckout } from "./razorpay.js";
  * Fetch a server-authoritative order for `selection`.
  *
  * @param {string} selection - A sellable kit id or "bundle".
+ * @param {string} [currency] - "INR" or "USD"; omitted means the server default.
  * @returns {Promise<OrderResponse>} The created order details.
  */
-export async function createOrder(selection) {
-  const { data } = await api.post("/api/payments/order", { selection });
+export async function createOrder(selection, currency) {
+  // The client names a currency but never an amount; the server prices the order.
+  const body = currency ? { selection, currency } : { selection };
+  const { data } = await api.post("/api/payments/order", body);
   return data;
 }
 
@@ -87,8 +91,8 @@ export function buildCheckoutOptions(order, handler, options = {}) {
   return {
     key: order.key_id,
     order_id: order.razorpay_order_id,
-    amount: order.amount_paise,
-    currency: "INR",
+    amount: order.amount_paise, // minor units of the order currency
+    currency: order.currency || "INR",
     name: options.name || "Course AI Platform",
     description: options.description || `Purchase: ${order.razorpay_order_id}`,
     prefill: options.prefill || {},
@@ -111,7 +115,7 @@ export function buildCheckoutOptions(order, handler, options = {}) {
 export async function startCheckout(selection, options = {}) {
   const loadScript = options.loadScript || loadRazorpayCheckout;
 
-  const order = await createOrder(selection);
+  const order = await createOrder(selection, options.currency);
   const Razorpay = await loadScript();
 
   return new Promise((resolve, reject) => {

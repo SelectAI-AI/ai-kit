@@ -38,7 +38,7 @@ def test_catalog_payload_matches_pricing_catalog_source():
         assert got["purchasable"] == kit.purchasable
 
     assert data["bundle_slugs"] == pricing_catalog.bundle_slugs()
-    assert data["bundle_base_paise"] == pricing_catalog.BUNDLE_BASE_PAISE
+    assert data["bundle_base_paise"] == pricing_catalog.BUNDLE_PRICES_MINOR["INR"]
 
 
 def test_non_purchasable_kit_flagged_in_catalog():

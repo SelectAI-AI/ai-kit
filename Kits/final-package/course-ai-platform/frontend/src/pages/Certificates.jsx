@@ -59,7 +59,7 @@ export default function Certificates() {
               </label>
               <button
                 onClick={requestCert} disabled={busy || !confirm || !legalName}
-                className="bg-brass-600 hover:bg-brass-500 text-ink-950 font-display font-medium text-sm rounded-lg px-4 py-2 disabled:opacity-50 transition-colors"
+                className="btn-brand font-display text-sm rounded-lg px-4 py-2"
               >
                 {busy ? "submitting…" : "request certificate"}
               </button>

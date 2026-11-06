@@ -5,7 +5,7 @@ Validates Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.8, 1.3, 1.4
 from hypothesis import given, settings as hyp_settings, strategies as st
 
 from app import pricing_catalog as cat
-from app.pricing_service import DISCOUNT_KIT_PAISE, compute_price_paise
+from app.pricing_service import TIER_PERCENT_OFF, compute_price_paise
 
 
 # Sellable selections = every purchasable kit id plus the reserved bundle id.
@@ -13,16 +13,16 @@ from app.pricing_service import DISCOUNT_KIT_PAISE, compute_price_paise
 _SELLABLE_KITS = [kit_id for kit_id in cat.KIT_CATALOG if cat.is_purchasable(kit_id)]
 _SELLABLE_SELECTIONS = _SELLABLE_KITS + [cat.BUNDLE_SELECTION]
 
-_TIERS = list(DISCOUNT_KIT_PAISE.keys())  # none, student_t1, student_t2, corporate, college
+_TIERS = list(TIER_PERCENT_OFF)  # none, student_t1, student_t2, corporate, college
 
 
 # Feature: kit-pricing-and-payments, Property 1: Pricing table correctness —
 # for any selection (a sellable kit id or "bundle") and any discount tier in
 # {none, student_t1, student_t2, corporate, college}, compute_price_paise
-# returns the exact mandated integer paise for that tier (individual kit:
-# none=999900, student_t1=649900, student_t2=499900, corporate=499900,
-# college=499900; bundle base=3999900), the result is always a non-negative
-# int, and the computation is deterministic (same inputs -> same output).
+# returns the exact mandated integer paise for that tier (individual kit: the
+# kit's INR list price less 0/35/50/50/50 percent, rounded down to a whole rupee;
+# bundle = the INR bundle list price for every tier), the result is always a
+# non-negative int, and the computation is deterministic (same inputs -> same output).
 @given(
     selection=st.sampled_from(_SELLABLE_SELECTIONS),
     tier=st.sampled_from(_TIERS),
@@ -41,20 +41,17 @@ def test_pricing_table_correctness(selection, tier):
 
     # Expected amount per the mandated pricing table (Req 4.2-4.5, 1.3, 1.4).
     if selection == cat.BUNDLE_SELECTION:
-        # Bundle resolves to BUNDLE_BASE_PAISE = 3999900 (Req 1.4), tier-independent.
-        expected = cat.BUNDLE_BASE_PAISE
-        assert expected == 3999900
+        # Bundle resolves to its INR list price, tier-independent (Req 1.4).
+        expected = cat.BUNDLE_PRICES_MINOR["INR"]
+        assert expected == 1890500
     else:
-        # Individual kit: fixed per-tier price (Req 4.2-4.5).
-        expected = DISCOUNT_KIT_PAISE[tier]
-        # Anchor the mandated per-tier values explicitly.
-        assert expected == {
-            "none": 999900,        # ₹9,999 base (Req 4.5, 1.3)
-            "student_t1": 649900,  # ₹6,499 (Req 4.2)
-            "student_t2": 499900,  # ₹4,999 (Req 4.3)
-            "corporate": 499900,   # ₹4,999 (Req 4.4)
-            "college": 499900,     # ₹4,999 (Req 10.1)
-        }[tier]
+        # Individual kit: INR list price less the tier percentage, rounded down
+        # to a whole rupee (Req 4.2-4.5).
+        list_price = cat.KIT_PRICES_MINOR["INR"][selection]
+        percent = {"none": 0, "student_t1": 35, "student_t2": 50, "corporate": 50, "college": 50}[tier]
+        expected = (list_price * (100 - percent) // 100) // 100 * 100
+        if tier == "none":
+            assert expected == list_price
 
     # Exact mandated integer paise (Req 4.1, 4.2-4.5).
     assert result == expected

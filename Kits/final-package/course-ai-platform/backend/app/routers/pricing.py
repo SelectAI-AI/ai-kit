@@ -31,11 +31,15 @@ def get_catalog():
             slugs=kit.slugs,
             base_price_paise=kit.base_price_paise,
             purchasable=kit.purchasable,
+            prices=kit.prices,
         )
         for kit in pricing_catalog.list_kits()
     ]
     return schemas.CatalogOut(
         kits=kits,
         bundle_slugs=pricing_catalog.bundle_slugs(),
-        bundle_base_paise=pricing_catalog.BUNDLE_BASE_PAISE,
+        bundle_base_paise=pricing_catalog.BUNDLE_PRICES_MINOR["INR"],
+        bundle_prices=pricing_catalog.BUNDLE_PRICES_MINOR,
+        currencies=list(pricing_catalog.SUPPORTED_CURRENCIES),
+        default_currency=pricing_catalog.DEFAULT_CURRENCY,
     )

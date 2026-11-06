@@ -83,8 +83,8 @@ export default function Dashboard() {
               <div key={mod.slug} className="relative mb-4 last:mb-0">
                 <div
                   className={`absolute -left-9 top-4 w-7 h-7 rounded-full border flex items-center justify-center text-[11px] font-display z-10
-                    ${state === "done" ? "bg-teal-500/15 border-teal-500 text-teal-400 shadow-[0_0_12px_rgba(46,197,211,0.4)]"
-                      : state === "active" ? "bg-brass-500/15 border-brass-500 text-brass-400 shadow-[0_0_12px_rgba(227,17,155,0.4)]"
+                    ${state === "done" ? "bg-teal-500/15 border-teal-500 text-teal-400 shadow-[0_0_12px_rgba(30,114,252,0.4)]"
+                      : state === "active" ? "bg-brass-500/15 border-brass-500 text-brass-400 shadow-[0_0_12px_rgba(251,16,162,0.4)]"
                       : "bg-ink-800 border-ink-700 text-paper-600"}`}
                 >
                   {i + 1}
@@ -98,7 +98,7 @@ export default function Dashboard() {
 
       {overview && overview.modules.length === 0 && (
         <div className="rounded-2xl border border-dashed border-ink-700 p-10 text-center">
-          <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-white/8 bg-ink-800/60 text-paper-400">
+          <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-ink-700 bg-ink-800/60 text-paper-400">
             <FolderSearch size={22} aria-hidden="true" />
           </span>
           <p className="font-display text-paper-100 mb-1">No modules found</p>

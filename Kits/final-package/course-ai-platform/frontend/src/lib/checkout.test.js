@@ -125,3 +125,33 @@ describe("startCheckout — Standard Checkout opens in INR (Req 6.1)", () => {
     expect(calls.openCount).toBe(1);
   });
 });
+
+describe("startCheckout — currency selection", () => {
+  beforeEach(() => {
+    mockApi.post.mockReset();
+  });
+
+  it("sends the chosen currency with the selection and never an amount", async () => {
+    mockApi.post.mockImplementation((url) =>
+      Promise.resolve({
+        data: url === "/api/payments/order"
+          ? { ...ORDER, currency: "USD", amount_paise: 6900 }
+          : { verified: true },
+      })
+    );
+    const { FakeRazorpay, calls } = makeFakeRazorpay();
+
+    await startCheckout("kit1", {
+      currency: "USD",
+      loadScript: () => Promise.resolve(FakeRazorpay),
+    });
+
+    expect(mockApi.post).toHaveBeenCalledWith("/api/payments/order", {
+      selection: "kit1",
+      currency: "USD",
+    });
+    // Checkout opens in the order's own currency, with the server's amount.
+    expect(calls.options.currency).toBe("USD");
+    expect(calls.options.amount).toBe(6900);
+  });
+});

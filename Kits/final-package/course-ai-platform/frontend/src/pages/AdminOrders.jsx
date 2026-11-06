@@ -155,7 +155,7 @@ export default function AdminOrders() {
           <button
             type="submit"
             disabled={collegeBusy}
-            className="mt-3 rounded-lg bg-brass-500 px-4 py-2 text-sm font-display text-ink-950 hover:bg-brass-400 transition-colors disabled:opacity-50"
+            className="mt-3 btn-brand rounded-lg px-4 py-2 text-sm font-display"
           >
             {collegeBusy ? "Creating…" : "Create college order"}
           </button>
@@ -200,7 +200,7 @@ export default function AdminOrders() {
             <button
               type="submit"
               disabled={corpBusy}
-              className="mt-3 rounded-lg bg-brass-500 px-4 py-2 text-sm font-display text-ink-950 hover:bg-brass-400 transition-colors disabled:opacity-50"
+              className="mt-3 btn-brand rounded-lg px-4 py-2 text-sm font-display"
             >
               {corpBusy ? "Creating…" : "Create corporate order"}
             </button>

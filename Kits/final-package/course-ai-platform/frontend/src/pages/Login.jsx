@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { BookMarked, GitBranch, ShieldCheck, Sparkles } from "lucide-react";
+import { GitBranch, ShieldCheck, Sparkles } from "lucide-react";
+import BrandLogo from "../components/BrandLogo";
 
 const highlights = [
   { icon: GitBranch, label: "Progressive unlocks", desc: "Finish a notebook, open the next." },
@@ -49,7 +50,7 @@ export default function Login() {
         <ul className="relative mt-8 space-y-4">
           {highlights.map(({ icon: Icon, label, desc }) => (
             <li key={label} className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/8 bg-ink-800/60 text-teal-400">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-ink-700 bg-ink-800/60 text-teal-400">
                 <Icon size={16} aria-hidden="true" />
               </span>
               <span>
@@ -64,14 +65,8 @@ export default function Login() {
       {/* Sign-in card */}
       <section className="w-full max-w-sm mx-auto lg:mx-0">
         <div className="glass rounded-2xl p-7">
-          <div className="flex items-center gap-2.5 font-display mb-7">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brass-500 to-teal-500 text-ink-950 shadow-[0_0_18px_rgba(227,17,155,0.5)]">
-              <BookMarked size={17} strokeWidth={2.5} aria-hidden="true" />
-            </span>
-            <span className="tracking-tight">
-              <span className="text-gradient font-semibold">course-ai</span>
-              <span className="text-paper-600"> / platform</span>
-            </span>
+          <div className="mb-7">
+            <BrandLogo className="h-9" />
           </div>
 
           <h1 className="text-xl font-display text-paper-100 mb-1">Sign in</h1>
@@ -119,7 +114,7 @@ export default function Login() {
 
             <button
               disabled={busy}
-              className="w-full rounded-lg bg-gradient-to-r from-brass-500 to-brass-600 py-2.5 font-display font-medium text-sm text-ink-950 shadow-[0_0_22px_rgba(227,17,155,0.35)] transition-[transform,box-shadow,opacity] hover:shadow-[0_0_30px_rgba(227,17,155,0.5)] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-300"
+              className="btn-brand w-full rounded-lg py-2.5 font-display text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-300"
             >
               {busy ? "Signing in…" : "Sign In"}
             </button>

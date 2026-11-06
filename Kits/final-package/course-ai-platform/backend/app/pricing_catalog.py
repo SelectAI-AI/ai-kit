@@ -1,26 +1,60 @@
 """Kit and pricing catalog (Catalog_Service).
 
 Configuration-sourced catalog of sellable kits, their covered module slugs, and
-base prices. All monetary amounts are integer **paise** (INR only; ₹1 = 100
-paise). The kit -> slug mapping lives here as config data (Req 1.1) so pricing
-and coverage can be retuned without touching router/business logic. A kit is
-*purchasable* iff its slug set is non-empty (Req 1.7); the bundle covers the
-union of every sellable kit's slugs plus the capstone (Req 1.5).
+list prices. All monetary amounts are integers in the currency's **minor unit**
+(paise for INR, cents for USD; 100 minor units = 1 major unit). The kit -> slug
+mapping lives here as config data (Req 1.1) so pricing and coverage can be
+retuned without touching router/business logic. A kit is *purchasable* iff its
+slug set is non-empty (Req 1.7); the bundle covers the union of every sellable
+kit's slugs plus the capstone (Req 1.5).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # --- Config data (Req 1.1) -------------------------------------------------
 
-# All amounts are integer paise. INR only.
-KIT_BASE_PAISE = 999900          # ₹9,999 per sellable kit (Req 1.3)
-BUNDLE_BASE_PAISE = 3999900      # ₹39,999 bundle (Req 1.4)
+# Currencies the platform can sell in. A client that names no currency is
+# charged in DEFAULT_CURRENCY (INR keeps older clients and tests unchanged).
+SUPPORTED_CURRENCIES: tuple[str, ...] = ("INR", "USD")
+DEFAULT_CURRENCY = "INR"
+
+# USD list prices in cents, from the selectAi pricing page. These are the source
+# of truth: INR prices are derived from them below.
+_USD_KIT_CENTS: dict[str, int] = {
+    "kit1": 6900,   # $69
+    "kit2": 7900,   # $79
+    "kit3": 2900,   # $29
+    "kit4": 3900,   # $39
+}
+_USD_BUNDLE_CENTS = 19900   # $199
+
+# Rupees charged per US dollar. Rounded from the market rate on 2026-11-03
+# (about 94.93). Change this one number to reprice every INR kit and the bundle;
+# each INR price is rounded to a whole rupee.
+USD_TO_INR_RATE = 95
+
+
+def _inr_from_usd(cents: int) -> int:
+    """Convert USD cents to INR paise at ``USD_TO_INR_RATE``, rounded to a whole rupee."""
+    return round(cents * USD_TO_INR_RATE / 100) * 100
+
+
+# Per-currency list prices in minor units. A kit missing from a currency's table
+# has no price in it (kit5 is not for sale yet).
+KIT_PRICES_MINOR: dict[str, dict[str, int]] = {
+    "USD": dict(_USD_KIT_CENTS),
+    "INR": {kit_id: _inr_from_usd(cents) for kit_id, cents in _USD_KIT_CENTS.items()},
+}
+BUNDLE_PRICES_MINOR: dict[str, int] = {
+    "USD": _USD_BUNDLE_CENTS,
+    "INR": _inr_from_usd(_USD_BUNDLE_CENTS),
+}
 
 # Kit -> covered module slugs (config data, Req 1.1 / A2).
 # An empty slug set => the kit is non-purchasable (Req 1.7).
 KIT_CATALOG: dict[str, dict] = {
     "kit1": {"name": "Foundations", "slugs": ["fundamentals", "db", "rag-engineering"]},
-    "kit2": {"name": "Agentic & Guardrails", "slugs": ["agentic-ai", "ai-guardrails"]},
+    "kit2": {"name": "Agentic AI & Guardrails", "slugs": ["agentic-ai", "ai-guardrails"]},
     "kit3": {"name": "MCP", "slugs": ["MCP"]},
     "kit4": {"name": "AI Ops", "slugs": ["ai-ops"]},
     # A1: Kit 5 has no slug yet -> non-purchasable.
@@ -44,8 +78,9 @@ class KitView:
     kit_id: str
     name: str
     slugs: list[str]
-    base_price_paise: int
+    base_price_paise: int            # INR list price (legacy field name)
     purchasable: bool
+    prices: dict[str, int] = field(default_factory=dict)   # currency -> list price in minor units
 
 
 # --- Public API ------------------------------------------------------------
@@ -68,8 +103,9 @@ def get_kit(kit_id: str) -> KitView | None:
         kit_id=kit_id,
         name=entry["name"],
         slugs=slugs,
-        base_price_paise=KIT_BASE_PAISE,
+        base_price_paise=KIT_PRICES_MINOR["INR"].get(kit_id, 0),   # 0 when the kit has no INR price
         purchasable=len(slugs) > 0,
+        prices={cur: table[kit_id] for cur, table in KIT_PRICES_MINOR.items() if kit_id in table},
     )
 
 
@@ -98,13 +134,24 @@ def bundle_slugs() -> list[str]:
 
 
 def base_price_paise(selection: str) -> int:
-    """Base price in paise for a ``selection`` (a kit id or ``"bundle"``).
+    """INR list price in paise for a ``selection`` (a kit id or ``"bundle"``).
 
-    Returns ``BUNDLE_BASE_PAISE`` for the bundle and ``KIT_BASE_PAISE`` for any
-    kit id (Req 1.3, 1.4). Raises ``KeyError`` for an unknown selection.
+    Raises ``KeyError`` for an unknown selection or a kit with no INR price.
     """
+    return price_minor(selection, "INR")
+
+
+def price_minor(selection: str, currency: str) -> int:
+    """List price in minor units for ``selection`` in ``currency``.
+
+    Raises ``KeyError`` for an unknown selection or currency, or when the kit
+    has no price in that currency.
+    """
+    if currency not in SUPPORTED_CURRENCIES:
+        raise KeyError(f"Unsupported currency: {currency!r}")
     if selection == BUNDLE_SELECTION:
-        return BUNDLE_BASE_PAISE
-    if selection in KIT_CATALOG:
-        return KIT_BASE_PAISE
-    raise KeyError(f"Unknown selection: {selection!r}")
+        return BUNDLE_PRICES_MINOR[currency]
+    try:
+        return KIT_PRICES_MINOR[currency][selection]
+    except KeyError:
+        raise KeyError(f"No {currency} price for selection: {selection!r}") from None

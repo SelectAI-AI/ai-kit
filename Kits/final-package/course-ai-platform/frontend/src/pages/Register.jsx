@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { BookMarked } from "lucide-react";
+import BrandLogo from "../components/BrandLogo";
 
 export default function Register() {
   const { register } = useAuth();
@@ -28,9 +28,8 @@ export default function Register() {
 
   return (
     <div className="max-w-sm mx-auto mt-20">
-      <div className="flex items-center gap-2 text-brass-400 font-display mb-8 justify-center">
-        <BookMarked size={20} />
-        <span className="tracking-tight">course-ai / platform</span>
+      <div className="flex justify-center mb-8">
+        <BrandLogo className="h-10" />
       </div>
       <h1 className="text-lg font-display text-paper-100 mb-6">Create your account</h1>
       <form onSubmit={submit} className="space-y-3">
@@ -54,7 +53,7 @@ export default function Register() {
         {error && <p className="text-rust-400 text-sm">{error}</p>}
         <button
           disabled={busy}
-          className="w-full bg-brass-600 hover:bg-brass-500 text-ink-950 transition-colors rounded-lg py-2.5 font-display font-medium text-sm disabled:opacity-50"
+          className="btn-brand w-full rounded-lg py-2.5 font-display text-sm"
         >
           {busy ? "creating…" : "create account"}
         </button>

@@ -108,3 +108,53 @@ export function parseInrToPaise(formatted) {
   const rupees = Number.parseInt(digits, 10);
   return rupees * PAISE_PER_RUPEE;
 }
+
+// --- Multi-currency display ---------------------------------------------------
+// The catalog now carries prices per currency in minor units (paise for INR,
+// cents for USD). Display is always whole major units, matching the server rule
+// that discounted prices are rounded down to a whole rupee / dollar.
+
+/** Currencies the pricing page can show, with the label used in the selector. */
+export const CURRENCY_OPTIONS = Object.freeze([
+  { code: "USD", label: "USD $" },
+  { code: "INR", label: "INR ₹" },
+]);
+
+/** Currency shown first when the catalog offers it (the selectAi site default). */
+export const PREFERRED_CURRENCY = "USD";
+
+/**
+ * Format an integer amount in minor units as a whole-unit string for `currency`.
+ *
+ * @example
+ * formatMinor(19900, "USD");   // "$199"
+ * formatMinor(3999900, "INR"); // "₹39,999"
+ *
+ * @param {number} minor - A non-negative integer amount in minor units.
+ * @param {string} currency - "USD" or "INR".
+ * @returns {string} The formatted whole-unit amount.
+ * @throws {TypeError} When `minor` is not a non-negative integer.
+ */
+export function formatMinor(minor, currency) {
+  if (currency === "USD") {
+    if (typeof minor !== "number" || !Number.isInteger(minor) || minor < 0) {
+      throw new TypeError("minor must be a non-negative integer");
+    }
+    return `$${Math.floor(minor / 100).toLocaleString("en-US")}`;
+  }
+  return formatPaiseToInr(minor);
+}
+
+/**
+ * Pick the currency to show first: a saved choice if the catalog offers it,
+ * else USD if offered, else the first currency the catalog lists.
+ *
+ * @param {string[]} offered - Currency codes the catalog supports.
+ * @param {string | null | undefined} saved - A previously chosen code, if any.
+ * @returns {string} A code from `offered`.
+ */
+export function pickCurrency(offered, saved) {
+  if (saved && offered.includes(saved)) return saved;
+  if (offered.includes(PREFERRED_CURRENCY)) return PREFERRED_CURRENCY;
+  return offered[0];
+}

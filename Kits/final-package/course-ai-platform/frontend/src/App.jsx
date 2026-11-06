@@ -31,7 +31,7 @@ export default function App() {
             blurred region so the notice stays legible (Req 3.5). */}
         <SecurityBanner />
         <div
-          className={`min-h-screen bg-ink-950 text-paper-100 transition-[filter] duration-200 ${
+          className={`min-h-screen text-paper-100 transition-[filter] duration-200 ${
             blurred ? "blur-xl" : ""
           }`}
         >
