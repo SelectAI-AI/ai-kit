@@ -47,16 +47,53 @@ export default function ModuleDetail() {
   const { slug } = useParams();
   const [mod, setMod] = useState(null);
   const [error, setError] = useState("");
+  // When access to a gated module is denied, the backend responds 403 with
+  // detail.required_kit_id. We capture that id to direct the user to the
+  // required kit on the pricing page (Req 9.2).
+  const [requiredKitId, setRequiredKitId] = useState("");
   const [openNotebook, setOpenNotebook] = useState(null);
   const [preview, setPreview] = useState(null);
 
   const load = () => {
     api.get(`/api/modules/${slug}`)
       .then(({ data }) => setMod(data))
-      .catch(() => setError("Could not load this module."));
+      .catch((err) => {
+        const detail = err?.response?.data?.detail;
+        const kitId = detail && typeof detail === "object" ? detail.required_kit_id : undefined;
+        if (err?.response?.status === 403 && kitId) {
+          setRequiredKitId(kitId);
+        } else {
+          setError("Could not load this module.");
+        }
+      });
   };
 
   useEffect(load, [slug]);
+
+  // Access denied: direct the user to the required kit on the pricing page (Req 9.2).
+  if (requiredKitId) {
+    return (
+      <div className="max-w-md">
+        <Link to="/" className="flex items-center gap-1.5 text-paper-600 hover:text-paper-300 text-sm mb-4 transition-colors w-fit">
+          <ArrowLeft size={14} /> dashboard
+        </Link>
+        <div className="rounded-xl border border-brass-500/40 bg-ink-900/70 p-6">
+          <div className="flex items-center gap-2 text-brass-400 font-display mb-2">
+            <Lock size={18} /> This module is locked
+          </div>
+          <p className="text-paper-400 text-sm mb-5">
+            Access to this module requires a kit. Unlock it by purchasing the required kit.
+          </p>
+          <Link
+            to={`/pricing?kit=${encodeURIComponent(requiredKitId)}`}
+            className="btn-brand inline-block rounded-lg px-4 py-2 text-sm font-display"
+          >
+            View pricing
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (error) return <p className="text-rust-400 text-sm">{error}</p>;
   if (!mod) return <p className="text-paper-400 font-display text-sm">loading…</p>;
@@ -73,8 +110,14 @@ export default function ModuleDetail() {
 
       <div className="mb-6"><ProgressBar percent={mod.percent_complete} /></div>
 
-      <article className="prose prose-invert prose-sm max-w-none mb-8 rounded-xl border border-ink-700 bg-ink-900/70 p-6
-                            prose-headings:font-display prose-headings:text-paper-100 prose-a:text-brass-400 prose-code:text-brass-300">
+      <article className="prose prose-sm max-w-none mb-8 rounded-xl border border-ink-700 bg-ink-900/70 p-6
+                            [--tw-prose-body:var(--color-paper-300)] [--tw-prose-headings:var(--color-paper-100)]
+                            [--tw-prose-bold:var(--color-paper-100)] [--tw-prose-links:var(--color-teal-400)]
+                            [--tw-prose-bullets:var(--color-paper-400)] [--tw-prose-counters:var(--color-paper-400)]
+                            [--tw-prose-quotes:var(--color-paper-100)] [--tw-prose-quote-borders:var(--color-ink-600)]
+                            [--tw-prose-hr:var(--color-ink-700)] [--tw-prose-th-borders:var(--color-ink-600)]
+                            [--tw-prose-td-borders:var(--color-ink-700)] [--tw-prose-code:var(--color-brass-300)]
+                            prose-headings:font-display prose-pre:bg-ink-950 prose-pre:text-paper-100">
         <ReactMarkdown>{mod.intro_markdown}</ReactMarkdown>
       </article>
 
@@ -247,7 +290,7 @@ function NotebookRow({ slug, nb, open, onToggle, onCompleted, preview, setPrevie
               )}
               <button
                 onClick={submit} disabled={busy}
-                className="mt-2.5 bg-brass-600 hover:bg-brass-500 text-ink-950 transition-colors rounded-lg px-4 py-1.5 text-xs font-display font-medium disabled:opacity-50"
+                className="btn-brand mt-2.5 rounded-lg px-4 py-1.5 text-xs font-display"
               >
                 {busy ? "submitting…" : "submit for review"}
               </button>

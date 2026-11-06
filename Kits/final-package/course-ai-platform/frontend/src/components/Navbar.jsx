@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { BookMarked, LogOut, ShieldCheck, Tag, Users } from "lucide-react";
+import { GraduationCap, LogOut, ShieldCheck, Users } from "lucide-react";
+import BrandLogo from "./BrandLogo";
 
 const navLink =
   "text-paper-300 hover:text-paper-100 transition-colors rounded-md px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/70";
@@ -10,23 +11,20 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-white/5 bg-ink-950/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-20 border-b border-ink-700 bg-white/85 backdrop-blur-xl">
       <div className="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between">
         <Link
           to="/"
-          className="group flex items-center gap-2.5 font-display font-semibold text-[15px] tracking-tight focus-visible:outline-none"
+          aria-label="selectAi home"
+          className="flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/70"
         >
-          <span className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brass-500 to-teal-500 text-ink-950 shadow-[0_0_18px_rgba(227,17,155,0.5)] transition-transform group-hover:scale-105">
-            <BookMarked size={16} strokeWidth={2.5} aria-hidden="true" />
-          </span>
-          <span className="text-gradient">course-ai</span>
-          <span className="text-paper-600 font-normal">/ platform</span>
+          <BrandLogo className="h-9" />
         </Link>
 
         <nav className="flex items-center gap-6 text-sm font-display">
-          {/* Pricing is public (Req 11.1) — surfaced to everyone, signed in or not. */}
+          {/* The pricing page is public (Req 11.1) — surfaced to everyone, signed in or not. */}
           <Link to="/pricing" className={`flex items-center gap-1 ${navLink}`}>
-            <Tag size={14} aria-hidden="true" /> pricing
+            <GraduationCap size={14} aria-hidden="true" /> enroll
           </Link>
 
           {user && (

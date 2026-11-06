@@ -15,7 +15,7 @@ export default function ModuleCard({ mod }) {
   return (
     <Link
       to={`/modules/${mod.slug}`}
-      className="group relative block overflow-hidden rounded-xl border border-white/6 bg-ink-900/60 px-5 py-4 transition-all duration-300 hover:border-brass-500/40 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60"
+      className="group relative block overflow-hidden rounded-xl border border-ink-700 bg-ink-900/60 px-5 py-4 transition-all duration-300 hover:border-brass-500/40 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60"
     >
       {/* Spotlight glow that fades in on hover — purely decorative. */}
       <span
@@ -34,7 +34,7 @@ export default function ModuleCard({ mod }) {
             <span>{mod.completed_notebooks} / {mod.total_notebooks} notebooks</span>
           </p>
         </div>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/8 bg-ink-800/60 text-paper-400 transition-all group-hover:border-brass-500/50 group-hover:text-brass-400 group-hover:translate-x-0.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ink-700 bg-ink-800/60 text-paper-400 transition-all group-hover:border-brass-500/50 group-hover:text-brass-400 group-hover:translate-x-0.5">
           <ArrowRight size={15} aria-hidden="true" />
         </span>
       </div>

@@ -2,54 +2,52 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-display: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Space Grotesk for UI and body text; Orbitron (font-brand) for hero headings, prices and table heads. */
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-brand: "Orbitron", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 
-  /* Dark tech base: near-black with a faint violet cast, matching the SelectAI showcase. */
-  --color-ink-950: #080510;
-  --color-ink-900: #0f0a1a;
-  --color-ink-800: #181225;
-  --color-ink-700: #241a38;
-  --color-ink-600: #352a4d;
+  /* selectAi light theme. Token names are kept from the earlier dark theme so every
+     component picks up the new look: "ink" is now the surface scale (light), "paper"
+     is the text scale (navy), "brass" is the magenta brand accent, "teal" is the
+     purple/blue accent, "rust" is danger. Colours were sampled from the selectAi site. */
+  --color-ink-950: #f7edfd;   /* inset / input background */
+  --color-ink-900: #ffffff;   /* card surface */
+  --color-ink-800: #f3defb;   /* chips, icon tiles */
+  --color-ink-700: #e2d5f3;   /* borders */
+  --color-ink-600: #cbbbe4;   /* stronger borders */
 
-  /* Primary accent: electric magenta (CTA buttons, logo, active highlights). */
-  --color-brass-300: #ff7ad4;
-  --color-brass-400: #ff3fbd;
-  --color-brass-500: #e3119b;
-  --color-brass-600: #b40c7a;
+  /* Primary accent: selectAi magenta (fills, gradients); 300/400 are darker for text. */
+  --color-brass-300: #a80b6c;
+  --color-brass-400: #c60e80;
+  --color-brass-500: #fb10a2;
+  --color-brass-600: #c20c80;
 
-  /* Secondary accent: cyan (eyebrows, outlined buttons, secondary highlights). */
-  --color-teal-400: #4fe0ec;
-  --color-teal-500: #2ec5d3;
+  /* Secondary accent: purple for text, blue for fills and borders. */
+  --color-teal-400: #8d00e6;
+  --color-teal-500: #1e72fc;
 
-  /* Danger / error: warm pink-red tuned to the palette. */
-  --color-rust-400: #ff6b8a;
-  --color-rust-500: #e8445f;
+  /* Danger / error. */
+  --color-rust-400: #c4203c;
+  --color-rust-500: #c0183a;
 
-  /* Text: cool off-whites on the dark base. */
-  --color-paper-100: #ece9f5;
-  --color-paper-300: #b7b0cc;
-  --color-paper-400: #8a829f;
-  /* Lightened to clear WCAG AA (4.5:1) for small text on the dark surfaces. */
-  --color-paper-600: #7b7391;
+  /* Text: navy scale on the light surfaces. */
+  --color-paper-100: #080b45;
+  --color-paper-300: #33376a;
+  --color-paper-400: #55597f;
+  --color-paper-600: #585d84;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   font-family: var(--font-body);
   color: var(--color-paper-100);
-  background-color: var(--color-ink-950);
-  /* Ambient depth: two accent glows plus a faint technical grid, all static so
-     they cost nothing after first paint. Fixed so the texture does not scroll. */
-  background-image:
-    radial-gradient(60rem 60rem at 12% -8%, rgba(227, 17, 155, 0.14), transparent 60%),
-    radial-gradient(50rem 50rem at 108% 8%, rgba(46, 197, 211, 0.12), transparent 55%),
-    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+  background-color: #fee9f9;
+  /* selectAi page wash: pink at the top left easing into lavender. Fixed so it does not scroll. */
+  background-image: linear-gradient(160deg, #fed5f0 0%, #fee9f9 30%, #f6e8fb 62%, #eadffa 100%);
   background-attachment: fixed;
 }
 
@@ -57,27 +55,51 @@ body {
   font-family: var(--font-display);
 }
 
-/* Gradient text used for hero / brand display type. */
+.font-brand {
+  font-family: var(--font-brand);
+}
+
+/* Gradient text used for hero / brand display type: magenta -> purple -> blue. */
 .text-gradient {
-  background-image: linear-gradient(100deg, var(--color-brass-400), var(--color-teal-400));
+  background-image: linear-gradient(100deg, #fb10a2 0%, #9c00fb 55%, #1e72fc 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Glass surface: layered translucency + inner edge highlight for real depth. */
+/* Primary call-to-action: the magenta -> violet -> purple button from the selectAi site. */
+.btn-brand {
+  background-image: linear-gradient(90deg, #fb10a2 0%, #ee02e1 52%, #a700fb 100%);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 8px 22px rgba(251, 16, 162, 0.28);
+  transition: filter 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+.btn-brand:hover:not(:disabled) {
+  filter: brightness(1.06) saturate(1.05);
+  box-shadow: 0 10px 28px rgba(167, 0, 251, 0.32);
+}
+.btn-brand:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-brand:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+/* Glass surface: frosted white card with a soft violet shadow. */
 .glass {
   background: linear-gradient(
       160deg,
-      rgba(36, 26, 56, 0.72),
-      rgba(15, 10, 26, 0.72)
+      rgba(255, 255, 255, 0.9),
+      rgba(254, 246, 252, 0.78)
     );
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(203, 187, 228, 0.55);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 18px 48px rgba(0, 0, 0, 0.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 18px 48px rgba(90, 40, 160, 0.12);
 }
 
 /* Entrance animation for route content and cards. */
@@ -108,7 +130,7 @@ body {
   width: 8px;
 }
 .ledger-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-ink-700);
+  background: var(--color-ink-600);
   border-radius: 4px;
 }
 

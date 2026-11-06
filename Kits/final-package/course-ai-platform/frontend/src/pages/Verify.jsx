@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { CheckCircle2, XCircle, Clock, BookMarked } from "lucide-react";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import BrandLogo from "../components/BrandLogo";
 import { API_BASE } from "../api";
 
 export default function Verify() {
@@ -14,9 +15,8 @@ export default function Verify() {
 
   return (
     <div className="max-w-md mx-auto mt-16">
-      <div className="flex items-center gap-2 text-brass-400 font-display mb-8 justify-center">
-        <BookMarked size={20} />
-        <span className="tracking-tight">course-ai / platform</span>
+      <div className="flex justify-center mb-8">
+        <BrandLogo className="h-10" />
       </div>
 
       {!result ? (

@@ -13,7 +13,8 @@
 //   - the rendered prices are the ones from the mocked API (11.5)
 
 import React from "react"; // eslint-disable-line no-unused-vars
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { formatPaiseToInr } from "../lib/pricing";
@@ -30,10 +31,12 @@ function renderPricing() {
 
 // ---- Mock the API client -------------------------------------------------
 // Pricing only calls api.get("/api/pricing/catalog"); route it to the fixture.
-const { mockApi } = vi.hoisted(() => ({
+const { mockApi, mockStartCheckout } = vi.hoisted(() => ({
   mockApi: { get: vi.fn() },
+  mockStartCheckout: vi.fn(),
 }));
 vi.mock("../api", () => ({ default: mockApi }));
+vi.mock("../lib/checkout", () => ({ startCheckout: mockStartCheckout }));
 
 import Pricing from "./Pricing.jsx";
 
@@ -77,6 +80,8 @@ function wireCatalog(catalog = makeCatalog()) {
 describe("Pricing page", () => {
   beforeEach(() => {
     mockApi.get.mockReset();
+    mockStartCheckout.mockReset();
+    localStorage.clear();
   });
 
   // ---- Req 11.5: catalog is fetched from the API ------------------------
@@ -166,5 +171,62 @@ describe("Pricing page", () => {
     expect(buyButtons[0].getAttribute("data-testid")).toBe(
       `buy-${PURCHASABLE_KIT.kit_id}`
     );
+  });
+
+  // ---- Multi-currency: USD default, selector, and checkout currency -------
+  const MULTI_CURRENCY = {
+    kits: [
+      { ...PURCHASABLE_KIT, prices: { INR: 888800, USD: 6900 } },
+      { kit_id: "kit2", name: "Agents Kit", slugs: ["agentic-ai"], base_price_paise: 999900,
+        purchasable: true, prices: { INR: 999900, USD: 7900 } },
+      NON_PURCHASABLE_KIT,
+    ],
+    bundle_slugs: ["fundamentals", "agentic-ai", "capstone"],
+    bundle_base_paise: 3999900,
+    bundle_prices: { INR: 3999900, USD: 19900 },
+    currencies: ["INR", "USD"],
+    default_currency: "INR",
+  };
+
+  it("shows USD prices first when the catalog offers USD, with the hero price and counts", async () => {
+    wireCatalog(MULTI_CURRENCY);
+    renderPricing();
+
+    await screen.findByText(PURCHASABLE_KIT.name);
+    expect(screen.getByLabelText(/currency/i)).toHaveValue("USD");
+    expect(screen.getByText("$69")).toBeInTheDocument();
+    expect(screen.getByText("$79")).toBeInTheDocument();
+    // Hero shows the bundle price split into symbol and number; the table row shows it whole.
+    expect(screen.getByText("199")).toBeInTheDocument();
+    expect(screen.getByText("$199")).toBeInTheDocument();
+    expect(screen.getByText(/2 Kits • 4 Modules • 35 Hands-on Labs/)).toBeInTheDocument();
+  });
+
+  it("switches every price when the currency selector changes and remembers the choice", async () => {
+    wireCatalog(MULTI_CURRENCY);
+    renderPricing();
+    await screen.findByText(PURCHASABLE_KIT.name);
+
+    await userEvent.selectOptions(screen.getByLabelText(/currency/i), "INR");
+
+    expect(screen.getByText(formatPaiseToInr(888800))).toBeInTheDocument();
+    expect(screen.getByText(formatPaiseToInr(3999900))).toBeInTheDocument();
+    expect(screen.queryByText("$69")).not.toBeInTheDocument();
+    expect(localStorage.getItem("currency")).toBe("INR");
+  });
+
+  it("starts checkout with the selected currency and never sends an amount", async () => {
+    wireCatalog(MULTI_CURRENCY);
+    mockStartCheckout.mockResolvedValue({});
+    renderPricing();
+    await screen.findByText(PURCHASABLE_KIT.name);
+
+    await userEvent.click(screen.getByTestId("buy-kit1"));
+    await waitFor(() => expect(mockStartCheckout).toHaveBeenCalledTimes(1));
+    expect(mockStartCheckout).toHaveBeenCalledWith("kit1", { currency: "USD" });
+
+    await userEvent.click(screen.getByTestId("buy-bundle"));
+    await waitFor(() => expect(mockStartCheckout).toHaveBeenCalledTimes(2));
+    expect(mockStartCheckout).toHaveBeenLastCalledWith("bundle", { currency: "USD" });
   });
 });

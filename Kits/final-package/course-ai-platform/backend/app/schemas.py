@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Dict, Optional, List
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -122,8 +122,10 @@ class NotebookReviewResult(BaseModel):
 
 
 # --- Kit pricing and payments (feature: kit-pricing-and-payments) ----------
-# All monetary amounts are integer paise (INR only). No schema below exposes
-# `razorpay_key_secret` — only `key_id` is ever returned to the client (Req 12.3, 12.4).
+# All monetary amounts are integers in a currency's minor unit (paise for INR, cents
+# for USD). Fields named `*_paise` are INR; `prices` maps currency -> minor units.
+# No schema below exposes `razorpay_key_secret` — only `key_id` is ever returned to
+# the client (Req 12.3, 12.4).
 
 
 class KitView(BaseModel):
@@ -132,8 +134,9 @@ class KitView(BaseModel):
     kit_id: str
     name: str
     slugs: List[str]
-    base_price_paise: int
+    base_price_paise: int  # INR list price, legacy field name
     purchasable: bool
+    prices: Dict[str, int] = Field(default_factory=dict)  # currency -> list price, minor units
 
     class Config:
         from_attributes = True
@@ -144,7 +147,10 @@ class CatalogOut(BaseModel):
 
     kits: List[KitView]
     bundle_slugs: List[str]
-    bundle_base_paise: int
+    bundle_base_paise: int  # INR bundle price, legacy field name
+    bundle_prices: Dict[str, int] = Field(default_factory=dict)  # currency -> bundle price
+    currencies: List[str] = Field(default_factory=list)
+    default_currency: str = "INR"
 
     class Config:
         from_attributes = True
@@ -177,11 +183,13 @@ class OrderCreateIn(BaseModel):
     amount is ignored and the server computes the authoritative amount (Req 4.7, 5.1)."""
 
     selection: str  # kit id | "bundle"
+    currency: Optional[str] = None  # "INR" | "USD"; omitted means the catalog default
 
 
 class OrderCreateOut(BaseModel):
     """Razorpay order creation response. Exposes `key_id` only — never the key
-    secret (Req 5.3, 12.4)."""
+    secret (Req 5.3, 12.4). `amount_paise` is in the order currency's minor unit
+    (paise for INR, cents for USD); the name is kept for compatibility."""
 
     razorpay_order_id: str
     amount_paise: int

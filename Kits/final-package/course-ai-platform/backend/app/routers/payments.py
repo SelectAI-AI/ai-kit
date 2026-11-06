@@ -21,8 +21,8 @@ from .. import entitlement_service, models, schemas
 from ..config import settings
 from ..database import get_db
 from ..deps import get_current_user
-from ..pricing_catalog import BUNDLE_SELECTION, is_purchasable
-from ..pricing_service import compute_price_paise
+from ..pricing_catalog import BUNDLE_SELECTION, DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, is_purchasable
+from ..pricing_service import compute_price_minor
 from ..razorpay_signatures import verify_callback
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
@@ -95,13 +95,34 @@ def create_order(
     # Req 5.6 — credentials must be configured; the error never echoes secrets.
     key_id, key_secret = _require_razorpay_credentials()
 
-    # Req 4.7 / 5.1 — server-authoritative amount; any client-supplied amount is
-    # ignored because the request schema only carries a selection.
-    amount_paise = compute_price_paise(selection, user.discount_tier)
+    # The client may pick a currency, never an amount. An unsupported currency, or
+    # a kit with no price in it, is a client error.
+    currency = payload.currency or DEFAULT_CURRENCY
+    if currency not in SUPPORTED_CURRENCIES:
+        raise HTTPException(status_code=400, detail=f"Currency '{currency}' is not supported.")
 
-    # Req 5.1 — create the Razorpay order with the amount in paise and INR.
+    # Req 4.7 / 5.1 — server-authoritative amount (minor units of ``currency``);
+    # any client-supplied amount is ignored because the request schema only
+    # carries a selection and an optional currency.
+    try:
+        amount_paise = compute_price_minor(selection, user.discount_tier, currency)
+    except KeyError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Selection '{selection}' has no price in {currency}.",
+        )
+
+    # Req 5.1 — create the Razorpay order with the amount in minor units. USD
+    # needs international payments enabled on the Razorpay account; a provider
+    # rejection is reported without echoing the provider's response.
     client = razorpay.Client(auth=(key_id, key_secret))
-    rzp_order = client.order.create({"amount": amount_paise, "currency": "INR"})
+    try:
+        rzp_order = client.order.create({"amount": amount_paise, "currency": currency})
+    except razorpay.errors.BadRequestError:
+        raise HTTPException(
+            status_code=502,
+            detail=f"The payment provider could not create a {currency} order.",
+        )
     razorpay_order_id = rzp_order["id"]
 
     # Req 5.2 — persist the order linking buyer, selection, amount, tier, and
@@ -110,8 +131,8 @@ def create_order(
         user_id=user.id,
         selection=selection,
         kind="individual",
-        amount_paise=amount_paise,
-        currency="INR",
+        amount_paise=amount_paise,  # minor units of ``currency``
+        currency=currency,
         discount_tier=user.discount_tier,
         razorpay_order_id=razorpay_order_id,
         status="created",
@@ -124,7 +145,7 @@ def create_order(
     return schemas.OrderCreateOut(
         razorpay_order_id=razorpay_order_id,
         amount_paise=amount_paise,
-        currency="INR",
+        currency=currency,
         key_id=key_id,
     )
 

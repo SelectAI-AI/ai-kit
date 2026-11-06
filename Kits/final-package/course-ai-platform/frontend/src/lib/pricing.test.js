@@ -6,6 +6,8 @@ import {
   paiseToWholeRupees,
   PAISE_PER_RUPEE,
   INR_SYMBOL,
+  formatMinor,
+  pickCurrency,
 } from "./pricing.js";
 
 // Feature: kit-pricing-and-payments, Property 12: Frontend paise/₹ formatting — for any non-negative integer paise, formatting renders the correct whole-rupee INR string and the inverse parse round-trips to the original paise
@@ -82,5 +84,37 @@ describe("paise/₹ formatting (Property 12)", () => {
   it("handles zero paise", () => {
     expect(formatPaiseToInr(0)).toBe("₹0");
     expect(parseInrToPaise("₹0")).toBe(0);
+  });
+});
+
+describe("multi-currency display", () => {
+  it("formats USD cents as whole dollars", () => {
+    expect(formatMinor(19900, "USD")).toBe("$199");
+    expect(formatMinor(6900, "USD")).toBe("$69");
+    expect(formatMinor(123456700, "USD")).toBe("$1,234,567");
+    expect(formatMinor(0, "USD")).toBe("$0");
+  });
+
+  it("formats INR paise exactly as formatPaiseToInr does", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 0, max: 10_000_000_000 }), (paise) => {
+        expect(formatMinor(paise, "INR")).toBe(formatPaiseToInr(paise));
+      }),
+      { numRuns: 100 }
+    );
+  });
+
+  it("rejects amounts that are not non-negative integers", () => {
+    expect(() => formatMinor(-1, "USD")).toThrow(TypeError);
+    expect(() => formatMinor(1.5, "USD")).toThrow(TypeError);
+    expect(() => formatMinor("100", "USD")).toThrow(TypeError);
+  });
+
+  it("picks a saved currency, else USD, else the first offered", () => {
+    expect(pickCurrency(["INR", "USD"], "INR")).toBe("INR");
+    expect(pickCurrency(["INR", "USD"], null)).toBe("USD");
+    expect(pickCurrency(["INR", "USD"], "EUR")).toBe("USD");
+    expect(pickCurrency(["INR"], "USD")).toBe("INR");
+    expect(pickCurrency(["INR"], undefined)).toBe("INR");
   });
 });
