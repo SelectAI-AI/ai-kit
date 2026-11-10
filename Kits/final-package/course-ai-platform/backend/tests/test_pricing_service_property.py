@@ -13,14 +13,14 @@ from app.pricing_service import TIER_PERCENT_OFF, compute_price_paise
 _SELLABLE_KITS = [kit_id for kit_id in cat.KIT_CATALOG if cat.is_purchasable(kit_id)]
 _SELLABLE_SELECTIONS = _SELLABLE_KITS + [cat.BUNDLE_SELECTION]
 
-_TIERS = list(TIER_PERCENT_OFF)  # none, student_t1, student_t2, corporate, college
+_TIERS = list(TIER_PERCENT_OFF)  # none, student_t1, corporate, college
 
 
 # Feature: kit-pricing-and-payments, Property 1: Pricing table correctness —
 # for any selection (a sellable kit id or "bundle") and any discount tier in
-# {none, student_t1, student_t2, corporate, college}, compute_price_paise
+# {none, student_t1, corporate, college}, compute_price_paise
 # returns the exact mandated integer paise for that tier (individual kit: the
-# kit's INR list price less 0/35/50/50/50 percent, rounded down to a whole rupee;
+# kit's INR list price less 0/35/50/50 percent, rounded down to a whole rupee;
 # bundle = the INR bundle list price for every tier), the result is always a
 # non-negative int, and the computation is deterministic (same inputs -> same output).
 @given(
@@ -48,7 +48,7 @@ def test_pricing_table_correctness(selection, tier):
         # Individual kit: INR list price less the tier percentage, rounded down
         # to a whole rupee (Req 4.2-4.5).
         list_price = cat.KIT_PRICES_MINOR["INR"][selection]
-        percent = {"none": 0, "student_t1": 35, "student_t2": 50, "corporate": 50, "college": 50}[tier]
+        percent = {"none": 0, "student_t1": 35, "corporate": 50, "college": 50}[tier]
         expected = (list_price * (100 - percent) // 100) // 100 * 100
         if tier == "none":
             assert expected == list_price

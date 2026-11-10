@@ -71,14 +71,25 @@ def test_inr_prices_are_the_usd_prices_converted_at_the_configured_rate():
     assert cat.USD_TO_INR_RATE == 95
     assert compute_price_minor("kit1", "none", "INR") == 655500
     assert compute_price_minor("kit1", "student_t1", "INR") == 426000   # ₹4,260.75 -> ₹4,260
-    assert compute_price_minor("kit1", "student_t2", "INR") == 327700   # ₹3,277.50 -> ₹3,277
+    assert compute_price_minor("kit1", "corporate", "INR") == 327700   # 50% off: ₹3,277.50 -> ₹3,277
     assert compute_price_minor(cat.BUNDLE_SELECTION, "none", "INR") == 1890500   # $199 -> ₹18,905
 
 
 def test_usd_student_tiers_take_a_percentage_off_and_round_down_to_a_whole_dollar():
     # $69 * 65% = $44.85 -> $44 ; $69 * 50% = $34.50 -> $34
     assert compute_price_minor("kit1", "student_t1", "USD") == 4400
-    assert compute_price_minor("kit1", "student_t2", "USD") == 3400
+    assert compute_price_minor("kit1", "corporate", "USD") == 3400
+
+
+def test_students_get_only_the_35_percent_tier():
+    # The 50% rate belongs to bulk/corporate purchases, not to students.
+    from app.routers.discounts import ALLOWED_APPROVAL_TIERS
+
+    assert ALLOWED_APPROVAL_TIERS == {"student_t1"}
+    assert TIER_PERCENT_OFF["student_t1"] == 35
+    assert "student_t2" not in TIER_PERCENT_OFF
+    with pytest.raises(KeyError):
+        compute_price_minor("kit1", "student_t2", "USD")
 
 
 def test_kit_without_a_usd_price_and_unknown_currency_raise_key_error():

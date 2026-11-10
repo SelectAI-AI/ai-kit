@@ -19,7 +19,7 @@ class User(Base):
     full_name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="student")  # student | instructor
-    discount_tier = Column(String, default="none")  # none | student_t1 | student_t2 | corporate | college
+    discount_tier = Column(String, default="none")  # none | student_t1 | corporate | college
     created_at = Column(DateTime, default=datetime.utcnow)
 
     progress = relationship("Progress", back_populates="user", cascade="all, delete-orphan")
@@ -71,7 +71,7 @@ class DiscountRequest(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     details = Column(String, nullable=True)          # submitted student details
     status = Column(String, default="pending")       # pending | approved | rejected
-    granted_tier = Column(String, nullable=True)     # student_t1 | student_t2 when approved
+    granted_tier = Column(String, nullable=True)     # student_t1 when approved
     created_at = Column(DateTime, default=datetime.utcnow)
     reviewed_by = Column(String, nullable=True)
     reviewed_at = Column(DateTime, nullable=True)

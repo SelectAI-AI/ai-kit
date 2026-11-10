@@ -14,6 +14,8 @@ import { ArrowRight, Info, Lock } from "lucide-react";
 // Marketing copy from the selectAi pricing page; the catalog does not carry it.
 const LABS_COUNT = 35;
 const CURRENCY_KEY = "currency";
+// Mirrors TIER_PERCENT_OFF["student_t1"] in backend/app/pricing_service.py.
+const STUDENT_DISCOUNT_PERCENT = 35;
 
 // Catalog responses from before multi-currency only carry INR in the legacy
 // `*_paise` fields, so fall back to those when the `prices` maps are absent.
@@ -199,9 +201,20 @@ export default function Pricing() {
             </button>
           </div>
 
-          <p className="mt-6 text-center text-xs text-paper-400">
-            Approved students get 35% or 50% off individual kits; the discount is applied at checkout.
-          </p>
+          {/* Student discount: one rate, with who qualifies and how it is granted. */}
+          <section
+            data-testid="student-discount"
+            className="mx-auto mt-8 max-w-xl rounded-2xl border border-ink-700 bg-white px-5 py-4 text-center shadow-sm"
+          >
+            <h2 className="font-display text-sm font-semibold text-paper-100">
+              Student discount: {STUDENT_DISCOUNT_PERCENT}% off individual kits
+            </h2>
+            <p className="mt-1 text-sm text-paper-400">
+              Available to students once an admin approves your student details, such as your
+              university. The discount is applied automatically at checkout. It does not apply to
+              the bundle.
+            </p>
+          </section>
 
           {/* Non-purchasable kits render WITHOUT a buy action (Req 11.4) */}
           {otherKits.length > 0 && (

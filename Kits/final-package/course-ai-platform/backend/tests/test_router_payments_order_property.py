@@ -39,7 +39,7 @@ _SELLABLE_KITS = [kid for kid in cat.KIT_CATALOG if cat.is_purchasable(kid)]
 _SELECTIONS = _SELLABLE_KITS + [cat.BUNDLE_SELECTION]
 
 # Every discount tier the pricing table understands.
-_TIERS = ["none", "student_t1", "student_t2", "corporate", "college"]
+_TIERS = ["none", "student_t1", "corporate", "college"]
 
 
 def _make_session():

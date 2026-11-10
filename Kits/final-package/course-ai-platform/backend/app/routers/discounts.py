@@ -10,8 +10,9 @@ from ..deps import get_current_user, require_instructor
 
 router = APIRouter(prefix="/api/discounts", tags=["discounts"])
 
-# Discount tiers an Admin may grant when approving a student request (Req 3.3).
-ALLOWED_APPROVAL_TIERS = {"student_t1", "student_t2"}
+# Discount tier an Admin may grant when approving a student request (Req 3.3):
+# approved students get 35% off. The 50% tiers are for bulk orders, not students.
+ALLOWED_APPROVAL_TIERS = {"student_t1"}
 
 
 # --- Student endpoints (Req 2) ---
@@ -76,13 +77,13 @@ def list_discount_requests(db: Session = Depends(get_db),
 @router.post("/requests/{request_id}/approve", response_model=schemas.DiscountRequestOut)
 def approve_discount_request(request_id: str, tier: str, db: Session = Depends(get_db),
                              admin: models.User = Depends(require_instructor)):
-    """Approve a discount request at the specified tier. Only `student_t1` or
-    `student_t2` are accepted; any other tier is rejected with the request and the
-    student's tier left unchanged (Req 3.2, 3.3)."""
+    """Approve a discount request at the specified tier. Only `student_t1` (35% off)
+    is accepted; any other tier is rejected with the request and the student's tier
+    left unchanged (Req 3.2, 3.3)."""
     if tier not in ALLOWED_APPROVAL_TIERS:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid discount tier '{tier}'; must be one of student_t1, student_t2",
+            detail=f"Invalid discount tier '{tier}'; must be student_t1",
         )
 
     req = (

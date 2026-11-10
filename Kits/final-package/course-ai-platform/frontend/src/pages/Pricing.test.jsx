@@ -202,6 +202,20 @@ describe("Pricing page", () => {
     expect(screen.getByText(/2 Kits • 4 Modules • 35 Hands-on Labs/)).toBeInTheDocument();
   });
 
+  it("explains the student discount once: 35%, needs admin approval, no 50% student rate", async () => {
+    wireCatalog(MULTI_CURRENCY);
+    renderPricing();
+    await screen.findByText(PURCHASABLE_KIT.name);
+
+    const note = screen.getByTestId("student-discount");
+    expect(note).toHaveTextContent("35% off individual kits");
+    expect(note).toHaveTextContent(/admin approves your student details/i);
+    expect(note).toHaveTextContent(/university/i);
+    expect(note).not.toHaveTextContent("50%");
+    // The old combined "35% or 50%" wording is gone from the whole page.
+    expect(screen.queryByText(/35% or 50%/)).not.toBeInTheDocument();
+  });
+
   it("switches every price when the currency selector changes and remembers the choice", async () => {
     wireCatalog(MULTI_CURRENCY);
     renderPricing();

@@ -22,8 +22,7 @@ from .pricing_catalog import (
 # Percentage taken off an individual kit's list price, per discount tier.
 TIER_PERCENT_OFF: dict[str, int] = {
     "none": 0,
-    "student_t1": 35,
-    "student_t2": 50,
+    "student_t1": 35,   # approved students
     "corporate": 50,
     "college": 50,
 }
@@ -38,7 +37,7 @@ def compute_price_minor(selection: str, tier: str, currency: str = DEFAULT_CURRE
     """Compute the server-authoritative payable amount in minor units of ``currency``.
 
     ``selection`` is a kit id or ``"bundle"``; ``tier`` is one of
-    ``none``/``student_t1``/``student_t2``/``corporate``/``college``.
+    ``none``/``student_t1``/``corporate``/``college``.
 
     Raises ``KeyError`` for an unknown tier, currency or selection, or when the
     kit has no price in ``currency``.

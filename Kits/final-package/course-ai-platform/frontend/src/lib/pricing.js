@@ -20,7 +20,6 @@ export const INR_SYMBOL = "\u20B9"; // ₹
 export const TIER_LABELS = Object.freeze({
   none: "Standard",
   student_t1: "Student (35% off)",
-  student_t2: "Student (50% off)",
   corporate: "Corporate",
   college: "College (bulk)",
 });

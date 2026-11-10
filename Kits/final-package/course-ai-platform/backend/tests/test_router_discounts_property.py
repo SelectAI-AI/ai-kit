@@ -3,7 +3,7 @@
 # Feature: kit-pricing-and-payments, Property 10: Discount request lifecycle and
 # single-pending invariant — valid submission creates a queryable `pending`
 # request; a second submission while pending is rejected with no change; approve
-# at `student_t1`/`student_t2` sets `approved` and the student's tier (other tiers
+# at `student_t1` sets `approved` and the student's tier (other tiers
 # rejected, state unchanged); reject sets `rejected` leaving tier `none`.
 
 Exercises the discount router functions directly against an in-memory SQLite

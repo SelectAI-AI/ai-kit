@@ -169,7 +169,7 @@ class DiscountRequestOut(BaseModel):
     user_id: str
     details: Optional[str] = None
     status: str  # pending | approved | rejected
-    granted_tier: Optional[str] = None  # student_t1 | student_t2 when approved
+    granted_tier: Optional[str] = None  # student_t1 when approved
     created_at: Optional[datetime] = None
     reviewed_by: Optional[str] = None
     reviewed_at: Optional[datetime] = None

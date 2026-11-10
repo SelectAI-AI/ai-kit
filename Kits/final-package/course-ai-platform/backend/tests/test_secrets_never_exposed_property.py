@@ -58,7 +58,7 @@ _VALID_SELECTIONS = _SELLABLE_KITS + [cat.BUNDLE_SELECTION]
 # Selections including invalid/non-purchasable/garbage values to drive error paths.
 _ALL_SELECTIONS = _VALID_SELECTIONS + _NON_PURCHASABLE + ["", "not_a_kit", "kitX"]
 
-_TIERS = ["none", "student_t1", "student_t2", "corporate", "college"]
+_TIERS = ["none", "student_t1", "corporate", "college"]
 
 
 def _make_session():
