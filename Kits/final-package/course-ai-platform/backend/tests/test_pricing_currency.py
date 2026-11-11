@@ -66,13 +66,14 @@ def test_usd_bundle_price_is_199_dollars_for_every_tier():
         assert compute_price_minor(cat.BUNDLE_SELECTION, tier, "USD") == 19900
 
 
-def test_inr_prices_are_the_usd_prices_converted_at_the_configured_rate():
-    # $69 at ₹95 per dollar is ₹6,555; tiers take a percentage off and round down to a whole rupee.
-    assert cat.USD_TO_INR_RATE == 95
-    assert compute_price_minor("kit1", "none", "INR") == 655500
-    assert compute_price_minor("kit1", "student_t1", "INR") == 426000   # ₹4,260.75 -> ₹4,260
-    assert compute_price_minor("kit1", "corporate", "INR") == 327700   # 50% off: ₹3,277.50 -> ₹3,277
-    assert compute_price_minor(cat.BUNDLE_SELECTION, "none", "INR") == 1890500   # $199 -> ₹18,905
+def test_inr_is_the_india_price_list():
+    # India: ₹9,999 per kit and ₹39,999 for the bundle. Approved students pay 35% less, rounded
+    # down to a whole rupee (₹6,499). The 50% rate is only for bulk tiers.
+    assert compute_price_minor("kit1", "none", "INR") == 999900
+    assert compute_price_minor("kit1", "student_t1", "INR") == 649900   # ₹6,499.35 -> ₹6,499
+    assert compute_price_minor("kit1", "corporate", "INR") == 499900   # 50% off: ₹4,999.50 -> ₹4,999
+    assert compute_price_minor(cat.BUNDLE_SELECTION, "none", "INR") == 3999900
+    assert compute_price_minor(cat.BUNDLE_SELECTION, "student_t1", "INR") == 3999900   # bundle ignores tiers
 
 
 def test_usd_student_tiers_take_a_percentage_off_and_round_down_to_a_whole_dollar():
@@ -125,10 +126,10 @@ def test_catalog_endpoint_lists_prices_for_every_currency():
     assert kits["kit2"]["prices"]["USD"] == 7900
     assert kits["kit2"]["name"] == "Agentic AI & Guardrails"
     # Legacy INR fields are still served for older clients.
-    assert kits["kit1"]["base_price_paise"] == 655500
-    assert kits["kit1"]["prices"]["INR"] == 655500
-    assert data["bundle_base_paise"] == 1890500
-    assert data["bundle_prices"]["INR"] == 1890500
+    assert kits["kit1"]["base_price_paise"] == 999900
+    assert kits["kit1"]["prices"]["INR"] == 999900
+    assert data["bundle_base_paise"] == 3999900
+    assert data["bundle_prices"]["INR"] == 3999900
     # kit5 is not purchasable and has no USD price.
     assert "USD" not in kits["kit5"]["prices"]
 
@@ -165,8 +166,8 @@ def test_order_without_a_currency_still_defaults_to_inr():
         result, mock_client = _create_order(db, buyer, payload, lambda body: {"id": "order_inr_1"})
 
         assert result.currency == "INR"
-        assert result.amount_paise == 655500
-        mock_client.order.create.assert_called_once_with({"amount": 655500, "currency": "INR"})
+        assert result.amount_paise == 999900
+        mock_client.order.create.assert_called_once_with({"amount": 999900, "currency": "INR"})
     finally:
         db.close()
 

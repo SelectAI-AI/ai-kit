@@ -115,8 +115,8 @@ export function parseInrToPaise(formatted) {
 
 /** Currencies the pricing page can show, with the label used in the selector. */
 export const CURRENCY_OPTIONS = Object.freeze([
-  { code: "USD", label: "USD $" },
-  { code: "INR", label: "INR ₹" },
+  { code: "USD", label: "USD $ (International)" },
+  { code: "INR", label: "INR ₹ (India)" },
 ]);
 
 /** Currency shown first when the catalog offers it (the selectAi site default). */

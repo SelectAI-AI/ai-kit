@@ -18,36 +18,28 @@ from dataclasses import dataclass, field
 SUPPORTED_CURRENCIES: tuple[str, ...] = ("INR", "USD")
 DEFAULT_CURRENCY = "INR"
 
-# USD list prices in cents, from the selectAi pricing page. These are the source
-# of truth: INR prices are derived from them below.
-_USD_KIT_CENTS: dict[str, int] = {
-    "kit1": 6900,   # $69
-    "kit2": 7900,   # $79
-    "kit3": 2900,   # $29
-    "kit4": 3900,   # $39
-}
-_USD_BUNDLE_CENTS = 19900   # $199
-
-# Rupees charged per US dollar. Rounded from the market rate on 2026-11-03
-# (about 94.93). Change this one number to reprice every INR kit and the bundle;
-# each INR price is rounded to a whole rupee.
-USD_TO_INR_RATE = 95
-
-
-def _inr_from_usd(cents: int) -> int:
-    """Convert USD cents to INR paise at ``USD_TO_INR_RATE``, rounded to a whole rupee."""
-    return round(cents * USD_TO_INR_RATE / 100) * 100
-
-
-# Per-currency list prices in minor units. A kit missing from a currency's table
-# has no price in it (kit5 is not for sale yet).
+# Two price lists, one per market. INR is the India price list: every kit is
+# a flat ₹9,999 and the bundle is ₹39,999. USD is the international price list
+# from the selectAi pricing page. The two are independent: changing one does not
+# change the other. A kit missing from a currency's table has no price in it
+# (kit5 is not for sale yet).
 KIT_PRICES_MINOR: dict[str, dict[str, int]] = {
-    "USD": dict(_USD_KIT_CENTS),
-    "INR": {kit_id: _inr_from_usd(cents) for kit_id, cents in _USD_KIT_CENTS.items()},
+    "INR": {                       # India
+        "kit1": 999900,            # ₹9,999
+        "kit2": 999900,
+        "kit3": 999900,
+        "kit4": 999900,
+    },
+    "USD": {                       # International
+        "kit1": 6900,              # $69
+        "kit2": 7900,              # $79
+        "kit3": 2900,              # $29
+        "kit4": 3900,              # $39
+    },
 }
 BUNDLE_PRICES_MINOR: dict[str, int] = {
-    "USD": _USD_BUNDLE_CENTS,
-    "INR": _inr_from_usd(_USD_BUNDLE_CENTS),
+    "INR": 3999900,                # ₹39,999
+    "USD": 19900,                  # $199
 }
 
 # Kit -> covered module slugs (config data, Req 1.1 / A2).

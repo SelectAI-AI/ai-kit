@@ -43,7 +43,7 @@ def test_pricing_table_correctness(selection, tier):
     if selection == cat.BUNDLE_SELECTION:
         # Bundle resolves to its INR list price, tier-independent (Req 1.4).
         expected = cat.BUNDLE_PRICES_MINOR["INR"]
-        assert expected == 1890500
+        assert expected == 3999900
     else:
         # Individual kit: INR list price less the tier percentage, rounded down
         # to a whole rupee (Req 4.2-4.5).

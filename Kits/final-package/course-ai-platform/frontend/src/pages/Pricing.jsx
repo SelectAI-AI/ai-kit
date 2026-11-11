@@ -109,7 +109,7 @@ export default function Pricing() {
               </select>
             </label>
             <p className="flex items-center gap-2 rounded-lg bg-cyan-50 px-3 py-1.5 text-sm text-paper-300">
-              <Info size={14} aria-hidden="true" /> Prices shown in your selected currency.
+              <Info size={14} aria-hidden="true" /> INR prices are for India; USD prices are for international customers.
             </p>
           </div>
 
