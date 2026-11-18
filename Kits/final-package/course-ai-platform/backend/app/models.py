@@ -89,6 +89,7 @@ class Order(Base):
     discount_tier = Column(String, default="none")
     razorpay_order_id = Column(String, unique=True, nullable=True)  # null for admin bulk
     razorpay_payment_id = Column(String, nullable=True)             # secondary confirmation
+    coupon_code = Column(String, nullable=True)       # coupon the buyer applied, e.g. LAUNCHOFFER
     status = Column(String, default="created")        # created | paid | failed
     created_at = Column(DateTime, default=datetime.utcnow)
     paid_at = Column(DateTime, nullable=True)

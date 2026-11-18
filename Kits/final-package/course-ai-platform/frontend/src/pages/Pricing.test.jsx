@@ -15,27 +15,38 @@
 import React from "react"; // eslint-disable-line no-unused-vars
 import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route, useLocation } from "react-router-dom";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { formatPaiseToInr } from "../lib/pricing";
 
 // Pricing uses useLocation() (to read ?kit=), so it must render inside a
 // Router context. Wrap it in MemoryRouter for every render.
-function renderPricing() {
+// The login route shows where the visitor will be sent back to after signing in.
+function LoginProbe() {
+  const location = useLocation();
+  return <div data-testid="login-page">login from={location.state?.from}</div>;
+}
+
+function renderPricing(path = "/pricing") {
   return render(
-    <MemoryRouter initialEntries={["/pricing"]}>
-      <Pricing />
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/login" element={<LoginProbe />} />
+      </Routes>
     </MemoryRouter>
   );
 }
 
 // ---- Mock the API client -------------------------------------------------
 // Pricing only calls api.get("/api/pricing/catalog"); route it to the fixture.
-const { mockApi, mockStartCheckout } = vi.hoisted(() => ({
-  mockApi: { get: vi.fn() },
+const { mockApi, mockStartCheckout, mockAuth } = vi.hoisted(() => ({
+  mockApi: { get: vi.fn(), post: vi.fn() },
   mockStartCheckout: vi.fn(),
+  mockAuth: { user: null, loading: false },
 }));
 vi.mock("../api", () => ({ default: mockApi }));
+vi.mock("../context/AuthContext", () => ({ useAuth: () => mockAuth }));
 vi.mock("../lib/checkout", () => ({ startCheckout: mockStartCheckout }));
 
 import Pricing from "./Pricing.jsx";
@@ -68,6 +79,31 @@ function makeCatalog(overrides = {}) {
   };
 }
 
+
+// The real catalog shape for India with the launch coupon switched on, and the offer
+// the server returns for LAUNCHOFFER (₹2,999 per kit, ₹9,996 bundle).
+const COUPON_CATALOG = {
+  kits: [
+    { kit_id: "kit1", name: "Foundations Kit", slugs: ["fundamentals", "db"], base_price_paise: 999900,
+      purchasable: true, prices: { INR: 999900, USD: 6900 } },
+    { kit_id: "kit2", name: "Agents Kit", slugs: ["agentic-ai"], base_price_paise: 999900,
+      purchasable: true, prices: { INR: 999900, USD: 7900 } },
+  ],
+  bundle_slugs: ["fundamentals", "db", "agentic-ai", "capstone"],
+  bundle_base_paise: 3999600,
+  bundle_prices: { INR: 3999600, USD: 19900 },
+  currencies: ["INR", "USD"],
+  default_currency: "INR",
+  coupons_enabled: true,
+};
+const OFFER = {
+  code: "LAUNCHOFFER",
+  label: "Early bird / Launching offer",
+  currency: "INR",
+  prices: { kit1: 299900, kit2: 299900, bundle: 999600 },
+  percent_off: { kit1: 70, kit2: 70, bundle: 75 },
+};
+
 function wireCatalog(catalog = makeCatalog()) {
   mockApi.get.mockImplementation((url) => {
     if (url === "/api/pricing/catalog") {
@@ -80,8 +116,11 @@ function wireCatalog(catalog = makeCatalog()) {
 describe("Pricing page", () => {
   beforeEach(() => {
     mockApi.get.mockReset();
+    mockApi.post.mockReset();
     mockStartCheckout.mockReset();
     localStorage.clear();
+    mockAuth.user = { id: "u1", role: "student" }; // signed in unless a test says otherwise
+    mockAuth.loading = false;
   });
 
   // ---- Req 11.5: catalog is fetched from the API ------------------------
@@ -242,5 +281,214 @@ describe("Pricing page", () => {
     await userEvent.click(screen.getByTestId("buy-bundle"));
     await waitFor(() => expect(mockStartCheckout).toHaveBeenCalledTimes(2));
     expect(mockStartCheckout).toHaveBeenLastCalledWith("bundle", { currency: "USD" });
+  });
+
+  // ---- Signed-out visitors go to the login page, not an error -------------
+  describe("buying while signed out", () => {
+    beforeEach(() => {
+      mockAuth.user = null;
+    });
+
+    it("sends a signed-out visitor to the login page when they click Buy", async () => {
+      wireCatalog(MULTI_CURRENCY);
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+
+      await userEvent.click(screen.getByTestId("buy-kit1"));
+
+      expect(await screen.findByTestId("login-page")).toHaveTextContent("from=/pricing");
+      expect(mockStartCheckout).not.toHaveBeenCalled();
+      expect(screen.queryByText(/not authenticated/i)).not.toBeInTheDocument();
+    });
+
+    it("does the same for Enroll Now and remembers the page it came from", async () => {
+      wireCatalog(MULTI_CURRENCY);
+      renderPricing("/pricing?focus=kit1");
+      await screen.findByText(PURCHASABLE_KIT.name);
+
+      await userEvent.click(screen.getByTestId("buy-bundle"));
+
+      expect(await screen.findByTestId("login-page")).toHaveTextContent("from=/pricing?focus=kit1");
+      expect(mockStartCheckout).not.toHaveBeenCalled();
+    });
+
+    it("lets a signed-out visitor browse prices and try a coupon without signing in", async () => {
+      wireCatalog(COUPON_CATALOG);
+      localStorage.setItem("currency", "INR");
+      mockApi.post.mockResolvedValue({ data: OFFER });
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+
+      await userEvent.type(screen.getByTestId("coupon-input"), "launchoffer");
+      await userEvent.click(screen.getByTestId("coupon-apply"));
+
+      expect(await screen.findByTestId("coupon-applied")).toBeInTheDocument();
+      expect(screen.queryByTestId("login-page")).not.toBeInTheDocument();
+    });
+  });
+
+  it("sends a signed-in buyer whose sign-in expired to the login page, with no error text", async () => {
+    wireCatalog(MULTI_CURRENCY);
+    mockStartCheckout.mockRejectedValue({ response: { status: 401, data: { detail: "Not authenticated" } } });
+    renderPricing();
+    await screen.findByText(PURCHASABLE_KIT.name);
+
+    await userEvent.click(screen.getByTestId("buy-kit1"));
+
+    expect(await screen.findByTestId("login-page")).toBeInTheDocument();
+    expect(screen.queryByText(/not authenticated/i)).not.toBeInTheDocument();
+  });
+
+  it("still shows a real checkout error to a signed-in buyer", async () => {
+    wireCatalog(MULTI_CURRENCY);
+    mockStartCheckout.mockRejectedValue({ response: { status: 409, data: { detail: "You already own this kit." } } });
+    renderPricing();
+    await screen.findByText(PURCHASABLE_KIT.name);
+
+    await userEvent.click(screen.getByTestId("buy-kit1"));
+
+    expect(await screen.findByText("You already own this kit.")).toBeInTheDocument();
+    expect(screen.queryByTestId("login-page")).not.toBeInTheDocument();
+  });
+
+  // ---- LAUNCHOFFER coupon -------------------------------------------------------
+  describe("coupon code", () => {
+    beforeEach(() => {
+      localStorage.setItem("currency", "INR");
+      wireCatalog(COUPON_CATALOG);
+    });
+
+    it("shows the full prices until a code is applied", async () => {
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+
+      expect(screen.getByTestId("coupon-input")).toBeInTheDocument();
+      expect(screen.getAllByText("₹9,999").length).toBeGreaterThan(0);
+      expect(screen.getByText("₹39,996")).toBeInTheDocument();
+      expect(screen.queryByTestId("list-price-kit1")).not.toBeInTheDocument();
+      expect(screen.queryByText("₹2,999")).not.toBeInTheDocument();
+    });
+
+    it("strikes off the list prices and shows the offer prices and percentages once the server accepts the code", async () => {
+      mockApi.post.mockResolvedValue({ data: OFFER });
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+
+      await userEvent.type(screen.getByTestId("coupon-input"), "LAUNCHOFFER");
+      await userEvent.click(screen.getByTestId("coupon-apply"));
+
+      await screen.findByTestId("coupon-applied");
+      expect(mockApi.post).toHaveBeenCalledWith("/api/pricing/coupon", { code: "LAUNCHOFFER", currency: "INR" });
+
+      // Kit: list price struck off, offer price and the early bird badge shown.
+      expect(screen.getByTestId("list-price-kit1").tagName).toBe("S");
+      expect(screen.getByTestId("list-price-kit1")).toHaveTextContent("₹9,999");
+      expect(screen.getAllByText("₹2,999").length).toBeGreaterThan(0);
+      expect(screen.getByTestId("offer-badge-kit1")).toHaveTextContent("Early bird / Launching offer · 70% off");
+
+      // Bundle: ₹39,996 struck off, ₹9,996 shown, 75% off.
+      expect(screen.getByTestId("list-price-bundle").tagName).toBe("S");
+      expect(screen.getByTestId("list-price-bundle")).toHaveTextContent("₹39,996");
+      expect(screen.getByText("₹9,996")).toBeInTheDocument();
+      expect(screen.getByTestId("offer-badge-bundle")).toHaveTextContent("75% off");
+      expect(screen.getByTestId("hero-list-price")).toHaveTextContent("₹39,996");
+    });
+
+    it("sends the accepted code with the purchase and nothing else about price", async () => {
+      mockApi.post.mockResolvedValue({ data: OFFER });
+      mockStartCheckout.mockResolvedValue({});
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+      await userEvent.type(screen.getByTestId("coupon-input"), "LAUNCHOFFER");
+      await userEvent.click(screen.getByTestId("coupon-apply"));
+      await screen.findByTestId("coupon-applied");
+
+      await userEvent.click(screen.getByTestId("buy-kit1"));
+      await waitFor(() => expect(mockStartCheckout).toHaveBeenCalledTimes(1));
+      expect(mockStartCheckout).toHaveBeenCalledWith("kit1", { currency: "INR", couponCode: "LAUNCHOFFER" });
+
+      await userEvent.click(screen.getByTestId("buy-bundle"));
+      await waitFor(() => expect(mockStartCheckout).toHaveBeenCalledTimes(2));
+      expect(mockStartCheckout).toHaveBeenLastCalledWith("bundle", { currency: "INR", couponCode: "LAUNCHOFFER" });
+    });
+
+    it("shows the server's message for a wrong code and leaves the prices alone", async () => {
+      mockApi.post.mockRejectedValue({ response: { status: 400, data: { detail: "That coupon code isn't valid." } } });
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+
+      await userEvent.type(screen.getByTestId("coupon-input"), "NOPE");
+      await userEvent.click(screen.getByTestId("coupon-apply"));
+
+      expect(await screen.findByTestId("coupon-error")).toHaveTextContent("That coupon code isn't valid.");
+      expect(screen.queryByTestId("coupon-applied")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("list-price-kit1")).not.toBeInTheDocument();
+    });
+
+    it("asks for a code before calling the server", async () => {
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+
+      await userEvent.click(screen.getByTestId("coupon-apply"));
+
+      expect(screen.getByTestId("coupon-error")).toHaveTextContent("Enter a coupon code.");
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    it("removes the offer when the buyer clicks Remove", async () => {
+      mockApi.post.mockResolvedValue({ data: OFFER });
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+      await userEvent.type(screen.getByTestId("coupon-input"), "LAUNCHOFFER");
+      await userEvent.click(screen.getByTestId("coupon-apply"));
+      await screen.findByTestId("coupon-applied");
+
+      await userEvent.click(screen.getByTestId("coupon-remove"));
+
+      expect(screen.queryByTestId("list-price-kit1")).not.toBeInTheDocument();
+      expect(screen.getByTestId("coupon-input")).toBeInTheDocument();
+    });
+
+    it("does not show the INR offer on the USD prices", async () => {
+      mockApi.post.mockResolvedValue({ data: OFFER });
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+      await userEvent.type(screen.getByTestId("coupon-input"), "LAUNCHOFFER");
+      await userEvent.click(screen.getByTestId("coupon-apply"));
+      await screen.findByTestId("coupon-applied");
+
+      await userEvent.selectOptions(screen.getByLabelText(/currency/i), "USD");
+
+      expect(screen.queryByTestId("list-price-kit1")).not.toBeInTheDocument();
+      expect(screen.getByText("$69")).toBeInTheDocument();
+    });
+
+    it("has no coupon box when the catalog says no coupon is on", async () => {
+      wireCatalog({ ...COUPON_CATALOG, coupons_enabled: false });
+      renderPricing();
+      await screen.findByText(PURCHASABLE_KIT.name);
+
+      expect(screen.queryByTestId("coupon-input")).not.toBeInTheDocument();
+    });
+  });
+
+  // ---- Links from the marketing site ---------------------------------------------
+  it("highlights the kit named in ?focus= without the 'module is locked' message", async () => {
+    wireCatalog(MULTI_CURRENCY);
+    renderPricing("/pricing?focus=kit2");
+    await screen.findByText("Agents Kit");
+
+    const row = screen.getByTestId("buy-kit2").closest("div");
+    expect(row).toHaveAttribute("data-focused", "true");
+    expect(screen.getByTestId("buy-kit1").closest("div")).not.toHaveAttribute("data-focused");
+    expect(screen.queryByText(/module is locked/i)).not.toBeInTheDocument();
+  });
+
+  it("still shows the 'module is locked' message for ?kit=", async () => {
+    wireCatalog(MULTI_CURRENCY);
+    renderPricing("/pricing?kit=kit1");
+    await screen.findByText(PURCHASABLE_KIT.name);
+
+    expect(screen.getByText(/module is locked/i)).toBeInTheDocument();
   });
 });

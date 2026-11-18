@@ -7,7 +7,7 @@ the catalog is public so visitors can see pricing before purchasing (Req 11.1,
 11.5). All monetary amounts are integer paise (INR only).
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from .. import pricing_catalog, schemas
 
@@ -42,4 +42,31 @@ def get_catalog():
         bundle_prices=pricing_catalog.BUNDLE_PRICES_MINOR,
         currencies=list(pricing_catalog.SUPPORTED_CURRENCIES),
         default_currency=pricing_catalog.DEFAULT_CURRENCY,
+        coupons_enabled=pricing_catalog.coupons_enabled(),
+    )
+
+
+@router.post("/coupon", response_model=schemas.CouponOut)
+def check_coupon(payload: schemas.CouponApplyIn):
+    """Check a typed coupon code and return the offer prices it gives in a currency.
+
+    Public, like the catalog: the pricing page calls it before sign-in. The server
+    stays the only authority on price: ``POST /api/payments/order`` re-checks the
+    code and computes the amount itself, so this response only drives the display.
+    """
+    try:
+        offer = pricing_catalog.coupon_offer(payload.code, payload.currency)
+    except pricing_catalog.InvalidCoupon as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    percent_off: dict[str, int] = {}
+    for selection, price in offer["prices"].items():
+        list_price = pricing_catalog.price_minor(selection, payload.currency)
+        percent_off[selection] = round((1 - price / list_price) * 100)
+    return schemas.CouponOut(
+        code=offer["code"],
+        label=offer["label"],
+        currency=payload.currency,
+        prices=offer["prices"],
+        percent_off=percent_off,
     )

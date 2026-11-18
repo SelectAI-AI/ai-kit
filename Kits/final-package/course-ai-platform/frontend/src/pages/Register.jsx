@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import BrandLogo from "../components/BrandLogo";
 
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const returnTo = useLocation().state?.from || "/";
   const [form, setForm] = useState({ full_name: "", email: "", password: "", instructor_code: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -18,7 +19,7 @@ export default function Register() {
     setBusy(true);
     try {
       await register(form);
-      navigate("/");
+      navigate(returnTo, { replace: true });
     } catch (err) {
       setError(err?.response?.data?.detail || "Registration failed");
     } finally {
@@ -59,7 +60,7 @@ export default function Register() {
         </button>
       </form>
       <p className="text-sm text-paper-600 mt-5 text-center">
-        Already have an account? <Link to="/login" className="text-brass-400 hover:text-brass-300">Sign in</Link>
+        Already have an account? <Link to="/login" state={{ from: returnTo }} className="text-brass-400 hover:text-brass-300">Sign in</Link>
       </p>
     </div>
   );

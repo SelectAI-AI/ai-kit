@@ -44,6 +44,13 @@ def _assert_slug_access(db: Session, user: models.User, slug: str):
         )
 
 
+def _sees_all_notebooks(user) -> bool:
+    """Demo mode and instructors can open every notebook without finishing the
+    earlier ones. Instructors already skip the kit paywall (Req 9.3); this lets an
+    instructor read the whole course in one pass. Students still unlock in order."""
+    return settings.demo_mode or getattr(user, "role", None) == "instructor"
+
+
 @router.get("", response_model=list[schemas.ModuleSummary])
 def list_modules(db: Session = Depends(get_db), user: models.User = Depends(get_current_user)):
     summaries = []
@@ -85,7 +92,7 @@ def module_detail(slug: str, db: Session = Depends(get_db), user: models.User = 
     notebooks_out = []
     for i, nb in enumerate(manifest["notebooks"]):
         row = progress[nb["filename"]]
-        unlocked = True if settings.demo_mode else row.unlocked
+        unlocked = True if _sees_all_notebooks(user) else row.unlocked
         completed = True if settings.demo_mode else row.completed
         notebooks_out.append(schemas.NotebookOut(
             filename=nb["filename"], title=nb["title"], description=nb.get("description"),
@@ -194,7 +201,7 @@ def complete_notebook(slug: str, filename: str, payload: schemas.UnlockSubmissio
 
 
 def _assert_unlocked(db, user, slug, filename):
-    if settings.demo_mode:
+    if _sees_all_notebooks(user):
         return
     manifest = cs.get_module_manifest(slug)
     if not manifest:

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { DemoModeProvider } from "./context/DemoModeContext";
 import DemoBanner from "./components/DemoBanner";
@@ -16,6 +16,7 @@ import Verify from "./pages/Verify";
 import Instructor from "./pages/Instructor";
 import AdminOrders from "./pages/AdminOrders";
 import Pricing from "./pages/Pricing";
+import KitRedirect from "./pages/KitRedirect";
 
 export default function App() {
   // Screen_Capture_Guard drives a full-app blur while the window is inactive.
@@ -44,11 +45,16 @@ export default function App() {
               <Route path="/verify/:certId" element={<Verify />} />
               {/* Pricing is public so visitors can see cost before purchasing (Req 11.1). */}
               <Route path="/pricing" element={<Pricing />} />
+              {/* The marketing site links here: /kits (Enroll Now) and /kits/<slug> (Explore Kit). */}
+              <Route path="/kits" element={<Navigate to="/pricing" replace />} />
+              <Route path="/kits/:kitSlug" element={<KitRedirect />} />
               <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
               <Route path="/modules/:slug" element={<PrivateRoute><ModuleDetail /></PrivateRoute>} />
               <Route path="/certificates" element={<PrivateRoute><Certificates /></PrivateRoute>} />
               <Route path="/instructor" element={<PrivateRoute instructorOnly><Instructor /></PrivateRoute>} />
               <Route path="/admin/orders" element={<PrivateRoute instructorOnly><AdminOrders /></PrivateRoute>} />
+              {/* Any other address goes home (the login page when signed out) instead of a blank page. */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>

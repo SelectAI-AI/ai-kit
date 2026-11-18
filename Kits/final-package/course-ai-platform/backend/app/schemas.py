@@ -151,6 +151,7 @@ class CatalogOut(BaseModel):
     bundle_prices: Dict[str, int] = Field(default_factory=dict)  # currency -> bundle price
     currencies: List[str] = Field(default_factory=list)
     default_currency: str = "INR"
+    coupons_enabled: bool = False  # True while a coupon is switched on (the code itself is never listed)
 
     class Config:
         from_attributes = True
@@ -184,6 +185,24 @@ class OrderCreateIn(BaseModel):
 
     selection: str  # kit id | "bundle"
     currency: Optional[str] = None  # "INR" | "USD"; omitted means the catalog default
+    coupon_code: Optional[str] = None  # checked by the server; an invalid code is rejected
+
+
+class CouponApplyIn(BaseModel):
+    """A coupon code typed on the pricing page, checked for one currency."""
+
+    code: str
+    currency: str
+
+
+class CouponOut(BaseModel):
+    """The offer a valid coupon gives: a price per selection in the currency."""
+
+    code: str
+    label: str
+    currency: str
+    prices: Dict[str, int]       # kit id | "bundle" -> offer price in minor units
+    percent_off: Dict[str, int]  # kit id | "bundle" -> whole percent off the list price
 
 
 class OrderCreateOut(BaseModel):

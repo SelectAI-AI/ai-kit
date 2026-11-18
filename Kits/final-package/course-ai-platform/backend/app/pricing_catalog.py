@@ -38,9 +38,81 @@ KIT_PRICES_MINOR: dict[str, dict[str, int]] = {
     },
 }
 BUNDLE_PRICES_MINOR: dict[str, int] = {
-    "INR": 3999900,                # ₹39,999
+    "INR": 3999600,                # ₹39,996 = four kits at ₹9,999
     "USD": 19900,                  # $199
 }
+
+
+# --- Launch offer coupon ---------------------------------------------------
+# A coupon replaces the list price with a fixed price per selection, per
+# currency. The server decides: the client only sends the code. The offer is in
+# INR only, so the code does not apply to USD orders. Set "enabled" to False to
+# end the offer (the code stops working and nothing is discounted).
+
+class InvalidCoupon(ValueError):
+    """The coupon code is unknown, switched off, or not valid for this purchase."""
+
+
+LAUNCH_COUPON: dict = {
+    "code": "LAUNCHOFFER",
+    "enabled": True,
+    "label": "Early bird / Launching offer",
+    "prices": {                      # currency -> selection -> price in minor units
+        "INR": {
+            "kit1": 299900,          # ₹2,999 (70% off ₹9,999)
+            "kit2": 299900,
+            "kit3": 299900,
+            "kit4": 299900,
+            "bundle": 999600,        # ₹9,996 (75% off ₹39,996)
+        },
+    },
+}
+_COUPONS: dict[str, dict] = {LAUNCH_COUPON["code"]: LAUNCH_COUPON}
+
+
+def normalize_coupon(code: str | None) -> str:
+    """Trim and upper-case a typed code so matching ignores case and spaces."""
+    return (code or "").strip().upper()
+
+
+def find_coupon(code: str | None) -> dict | None:
+    """The coupon for ``code`` if it exists and is enabled, else ``None``."""
+    coupon = _COUPONS.get(normalize_coupon(code))
+    return coupon if coupon and coupon["enabled"] else None
+
+
+def coupons_enabled() -> bool:
+    """True while at least one coupon is switched on."""
+    return any(c["enabled"] for c in _COUPONS.values())
+
+
+def coupon_offer(code: str | None, currency: str) -> dict:
+    """The offer prices a coupon gives in ``currency``.
+
+    Returns ``{"code", "label", "prices": {selection: minor_units}}``. Raises
+    ``InvalidCoupon`` for an unknown or disabled code, or a currency the coupon
+    does not cover.
+    """
+    coupon = find_coupon(code)
+    if coupon is None:
+        raise InvalidCoupon("That coupon code isn't valid.")
+    prices = coupon["prices"].get(currency)
+    if not prices:
+        raise InvalidCoupon(f"That coupon code doesn't apply to {currency} prices.")
+    return {"code": coupon["code"], "label": coupon["label"], "prices": dict(prices)}
+
+
+def coupon_price_minor(code: str | None, selection: str, currency: str) -> int:
+    """The coupon price for ``selection`` in ``currency``.
+
+    Raises ``InvalidCoupon`` when the code is invalid, the currency is not
+    covered, or the selection has no offer price.
+    """
+    offer = coupon_offer(code, currency)
+    try:
+        return offer["prices"][selection]
+    except KeyError:
+        raise InvalidCoupon("That coupon code doesn't apply to this purchase.") from None
 
 # Kit -> covered module slugs (config data, Req 1.1 / A2).
 # An empty slug set => the kit is non-purchasable (Req 1.7).

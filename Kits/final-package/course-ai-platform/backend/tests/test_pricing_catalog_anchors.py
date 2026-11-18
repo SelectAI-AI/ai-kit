@@ -30,11 +30,11 @@ class TestCatalogPriceAnchors:
         assert pricing_catalog.BUNDLE_PRICES_MINOR["USD"] == 19900
 
     def test_inr_is_the_india_price_list(self):
-        # India: every kit is a flat ₹9,999 and the bundle is ₹39,999 (Req 1.3, 1.4).
+        # India: every kit is a flat ₹9,999 and the bundle is ₹39,996, four kits (Req 1.3, 1.4).
         assert pricing_catalog.KIT_PRICES_MINOR["INR"] == {
             "kit1": 999900, "kit2": 999900, "kit3": 999900, "kit4": 999900,
         }
-        assert pricing_catalog.BUNDLE_PRICES_MINOR["INR"] == 3999900
+        assert pricing_catalog.BUNDLE_PRICES_MINOR["INR"] == 3999600
 
     def test_inr_is_not_derived_from_usd(self):
         # The two lists are independent: there is no conversion rate in the catalog.
@@ -52,7 +52,7 @@ class TestCatalogPriceAnchors:
         for kit_id, paise in pricing_catalog.KIT_PRICES_MINOR["INR"].items():
             assert pricing_catalog.base_price_paise(kit_id) == paise
         assert (
-            pricing_catalog.base_price_paise(pricing_catalog.BUNDLE_SELECTION) == 3999900
+            pricing_catalog.base_price_paise(pricing_catalog.BUNDLE_SELECTION) == 3999600
         )
 
     def test_unpriced_kit_has_no_price_in_any_currency(self):

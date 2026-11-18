@@ -34,6 +34,7 @@ import { loadRazorpayCheckout } from "./razorpay.js";
  *   `window.Razorpay` constructor. Defaults to {@link loadRazorpayCheckout};
  *   override in tests to mock the script.
  * @property {string} [currency] - Currency to charge in ("INR" or "USD").
+ * @property {string} [couponCode] - A coupon code the buyer applied; the server re-checks it.
  * @property {string} [name] - Checkout display name (business/brand).
  * @property {string} [description] - Checkout description line.
  * @property {Record<string, string>} [prefill] - Prefilled customer fields.
@@ -53,9 +54,12 @@ import { loadRazorpayCheckout } from "./razorpay.js";
  * @param {string} [currency] - "INR" or "USD"; omitted means the server default.
  * @returns {Promise<OrderResponse>} The created order details.
  */
-export async function createOrder(selection, currency) {
-  // The client names a currency but never an amount; the server prices the order.
-  const body = currency ? { selection, currency } : { selection };
+export async function createOrder(selection, currency, couponCode) {
+  // The client names a currency and may send a coupon code, but never an amount;
+  // the server checks the code and prices the order.
+  const body = { selection };
+  if (currency) body.currency = currency;
+  if (couponCode) body.coupon_code = couponCode;
   const { data } = await api.post("/api/payments/order", body);
   return data;
 }
@@ -115,7 +119,7 @@ export function buildCheckoutOptions(order, handler, options = {}) {
 export async function startCheckout(selection, options = {}) {
   const loadScript = options.loadScript || loadRazorpayCheckout;
 
-  const order = await createOrder(selection, options.currency);
+  const order = await createOrder(selection, options.currency, options.couponCode);
   const Razorpay = await loadScript();
 
   return new Promise((resolve, reject) => {

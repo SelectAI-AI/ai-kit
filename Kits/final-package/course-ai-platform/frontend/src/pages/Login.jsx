@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { GitBranch, ShieldCheck, Sparkles } from "lucide-react";
 import BrandLogo from "../components/BrandLogo";
@@ -13,6 +13,8 @@ const highlights = [
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  // A page that needs sign-in sends people here with the address to return to.
+  const returnTo = useLocation().state?.from || "/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +26,7 @@ export default function Login() {
     setBusy(true);
     try {
       await login(email, password);
-      navigate("/");
+      navigate(returnTo, { replace: true });
     } catch (err) {
       setError(err?.response?.data?.detail || "Login failed. Check your email and password, then try again.");
     } finally {
@@ -122,7 +124,7 @@ export default function Login() {
 
           <p className="text-sm text-paper-400 mt-6 text-center">
             No account?{" "}
-            <Link to="/register" className="text-teal-400 hover:text-teal-500 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/70">
+            <Link to="/register" state={{ from: returnTo }} className="text-teal-400 hover:text-teal-500 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/70">
               Create one
             </Link>
           </p>

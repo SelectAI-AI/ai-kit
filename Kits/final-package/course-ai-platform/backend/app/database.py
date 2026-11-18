@@ -26,6 +26,7 @@ def apply_migrations(engine):
         "ALTER TABLE progress ADD COLUMN review_note VARCHAR",
         "ALTER TABLE progress ADD COLUMN reviewed_by VARCHAR",
         "ALTER TABLE users ADD COLUMN discount_tier VARCHAR DEFAULT 'none'",
+        "ALTER TABLE orders ADD COLUMN coupon_code VARCHAR",
     ]
     with engine.connect() as conn:
         for stmt in statements:

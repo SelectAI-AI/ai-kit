@@ -36,6 +36,14 @@ vi.mock('./pages/ModuleDetail', () => ({ default: () => <div>ModuleDetail</div> 
 vi.mock('./pages/Certificates', () => ({ default: () => <div>Certificates</div> }));
 vi.mock('./pages/Verify', () => ({ default: () => <div>Verify</div> }));
 vi.mock('./pages/Instructor', () => ({ default: () => <div>Instructor</div> }));
+// Show the query string so tests can see where a /kits link landed.
+vi.mock('./pages/Pricing', async () => {
+  const { useLocation } = await import('react-router-dom');
+  function PricingStub() {
+    return <div data-testid="pricing-page">Pricing{useLocation().search}</div>;
+  }
+  return { default: PricingStub };
+});
 
 import App from './App';
 import { SECURITY_BANNER_EVENT } from './lib/securityBanner';
@@ -188,5 +196,41 @@ describe('App layout', () => {
     // banner should appear before navbar in the DOM
     const position = banner.compareDocumentPosition(navbar);
     expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
+
+describe('links from the marketing site', () => {
+  const renderAt = (path) =>
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>
+    );
+
+  it('opens the pricing page for /kits (the Enroll Now link) instead of a blank page', () => {
+    renderAt('/kits');
+    expect(screen.getByTestId('pricing-page')).toHaveTextContent('Pricing');
+  });
+
+  it.each([
+    ['foundation', 'kit1'],
+    ['data-rag', 'kit1'],
+    ['agents', 'kit2'],
+    ['security', 'kit2'],
+    ['production', 'kit4'],
+  ])('sends /kits/%s to the pricing page with %s highlighted', (slug, kitId) => {
+    renderAt(`/kits/${slug}`);
+    expect(screen.getByTestId('pricing-page')).toHaveTextContent(`?focus=${kitId}`);
+  });
+
+  it('sends an unknown /kits/<slug> to the plain pricing page', () => {
+    renderAt('/kits/not-a-kit');
+    expect(screen.getByTestId('pricing-page')).toHaveTextContent('Pricing');
+    expect(screen.getByTestId('pricing-page')).not.toHaveTextContent('focus');
+  });
+
+  it('sends any other unknown address home instead of a blank page', () => {
+    renderAt('/no/such/page');
+    expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });
 });

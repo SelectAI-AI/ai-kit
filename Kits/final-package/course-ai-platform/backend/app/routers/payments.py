@@ -21,6 +21,7 @@ from .. import entitlement_service, models, schemas
 from ..config import settings
 from ..database import get_db
 from ..deps import get_current_user
+from .. import pricing_catalog
 from ..pricing_catalog import BUNDLE_SELECTION, DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, is_purchasable
 from ..pricing_service import compute_price_minor
 from ..razorpay_signatures import verify_callback
@@ -103,9 +104,13 @@ def create_order(
 
     # Req 4.7 / 5.1 — server-authoritative amount (minor units of ``currency``);
     # any client-supplied amount is ignored because the request schema only
-    # carries a selection and an optional currency.
+    # carries a selection, an optional currency and an optional coupon code. The
+    # code is validated here: a wrong code is an error, never silently dropped.
+    coupon = pricing_catalog.normalize_coupon(payload.coupon_code) or None
     try:
-        amount_paise = compute_price_minor(selection, user.discount_tier, currency)
+        amount_paise = compute_price_minor(selection, user.discount_tier, currency, coupon)
+    except pricing_catalog.InvalidCoupon as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     except KeyError:
         raise HTTPException(
             status_code=400,
@@ -134,6 +139,7 @@ def create_order(
         amount_paise=amount_paise,  # minor units of ``currency``
         currency=currency,
         discount_tier=user.discount_tier,
+        coupon_code=coupon,
         razorpay_order_id=razorpay_order_id,
         status="created",
     )

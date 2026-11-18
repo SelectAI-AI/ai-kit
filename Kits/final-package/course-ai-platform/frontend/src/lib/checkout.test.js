@@ -155,3 +155,36 @@ describe("startCheckout — currency selection", () => {
     expect(calls.options.amount).toBe(6900);
   });
 });
+
+describe("startCheckout — coupon code", () => {
+  beforeEach(() => {
+    mockApi.post.mockReset();
+  });
+
+  it("sends the coupon code with the order request and never an amount", async () => {
+    wireApi();
+    const { FakeRazorpay } = makeFakeRazorpay();
+
+    await startCheckout("bundle", {
+      currency: "INR",
+      couponCode: "LAUNCHOFFER",
+      loadScript: () => Promise.resolve(FakeRazorpay),
+    });
+
+    expect(mockApi.post).toHaveBeenCalledWith("/api/payments/order", {
+      selection: "bundle",
+      currency: "INR",
+      coupon_code: "LAUNCHOFFER",
+    });
+  });
+
+  it("leaves coupon_code out of the request when there is no code", async () => {
+    wireApi();
+    const { FakeRazorpay } = makeFakeRazorpay();
+
+    await startCheckout("kit1", { currency: "INR", loadScript: () => Promise.resolve(FakeRazorpay) });
+
+    const body = mockApi.post.mock.calls.find((c) => c[0] === "/api/payments/order")[1];
+    expect(body).toEqual({ selection: "kit1", currency: "INR" });
+  });
+});

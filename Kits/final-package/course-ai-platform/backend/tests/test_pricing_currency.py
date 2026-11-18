@@ -67,13 +67,13 @@ def test_usd_bundle_price_is_199_dollars_for_every_tier():
 
 
 def test_inr_is_the_india_price_list():
-    # India: ₹9,999 per kit and ₹39,999 for the bundle. Approved students pay 35% less, rounded
+    # India: ₹9,999 per kit and ₹39,996 for the bundle (four kits). Approved students pay 35% less, rounded
     # down to a whole rupee (₹6,499). The 50% rate is only for bulk tiers.
     assert compute_price_minor("kit1", "none", "INR") == 999900
     assert compute_price_minor("kit1", "student_t1", "INR") == 649900   # ₹6,499.35 -> ₹6,499
     assert compute_price_minor("kit1", "corporate", "INR") == 499900   # 50% off: ₹4,999.50 -> ₹4,999
-    assert compute_price_minor(cat.BUNDLE_SELECTION, "none", "INR") == 3999900
-    assert compute_price_minor(cat.BUNDLE_SELECTION, "student_t1", "INR") == 3999900   # bundle ignores tiers
+    assert compute_price_minor(cat.BUNDLE_SELECTION, "none", "INR") == 3999600
+    assert compute_price_minor(cat.BUNDLE_SELECTION, "student_t1", "INR") == 3999600   # bundle ignores tiers
 
 
 def test_usd_student_tiers_take_a_percentage_off_and_round_down_to_a_whole_dollar():
@@ -128,8 +128,8 @@ def test_catalog_endpoint_lists_prices_for_every_currency():
     # Legacy INR fields are still served for older clients.
     assert kits["kit1"]["base_price_paise"] == 999900
     assert kits["kit1"]["prices"]["INR"] == 999900
-    assert data["bundle_base_paise"] == 3999900
-    assert data["bundle_prices"]["INR"] == 3999900
+    assert data["bundle_base_paise"] == 3999600
+    assert data["bundle_prices"]["INR"] == 3999600
     # kit5 is not purchasable and has no USD price.
     assert "USD" not in kits["kit5"]["prices"]
 

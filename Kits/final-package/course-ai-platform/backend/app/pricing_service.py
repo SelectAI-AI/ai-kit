@@ -16,6 +16,7 @@ are out of scope.
 from .pricing_catalog import (
     BUNDLE_SELECTION,
     DEFAULT_CURRENCY,
+    coupon_price_minor,
     price_minor,
 )
 
@@ -33,20 +34,33 @@ def _discounted(list_minor: int, percent_off: int) -> int:
     return (list_minor * (100 - percent_off) // 100) // 100 * 100
 
 
-def compute_price_minor(selection: str, tier: str, currency: str = DEFAULT_CURRENCY) -> int:
+def compute_price_minor(
+    selection: str,
+    tier: str,
+    currency: str = DEFAULT_CURRENCY,
+    coupon_code: str | None = None,
+) -> int:
     """Compute the server-authoritative payable amount in minor units of ``currency``.
 
     ``selection`` is a kit id or ``"bundle"``; ``tier`` is one of
     ``none``/``student_t1``/``corporate``/``college``.
 
+    A ``coupon_code`` is checked by the server and never trusted from the client.
+    A valid coupon does not stack with a tier discount: the buyer pays whichever
+    price is lower.
+
     Raises ``KeyError`` for an unknown tier, currency or selection, or when the
-    kit has no price in ``currency``.
+    kit has no price in ``currency``. Raises ``InvalidCoupon`` for a bad coupon.
     """
     percent_off = TIER_PERCENT_OFF[tier]
     list_minor = price_minor(selection, currency)
     if selection == BUNDLE_SELECTION:
-        return list_minor
-    return _discounted(list_minor, percent_off)
+        price = list_minor
+    else:
+        price = _discounted(list_minor, percent_off)
+    if coupon_code:
+        price = min(price, coupon_price_minor(coupon_code, selection, currency))
+    return price
 
 
 def compute_price_paise(selection: str, tier: str) -> int:
